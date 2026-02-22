@@ -1,0 +1,284 @@
+---
+title: "Creating Sync Licenses via the API"
+description: "Create licenses by specifying track, usage type, territory, and duration — includes validation rules and error handling"
+---
+
+# Creating Sync Licenses via the API
+
+<Callout type="info" title="What This Guide Covers">
+  How to create sync licenses for tracks, understand required fields and validation rules, check license status, and handle errors.
+</Callout>
+
+## Prerequisites
+
+- Authenticated with the ProtoForge API ([Authentication Guide](/guides/authentication))
+- Found a track to license ([Searching the Catalogue](/guides/searching-catalogue))
+
+<Steps>
+
+### Prepare License Parameters
+
+A sync license requires four fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `track_id` | string | Yes | Track to license (must have status `available`) |
+| `usage_type` | enum | Yes | `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media` |
+| `territory` | string[] | Yes | ISO 3166-1 alpha-2 codes for licensed territories |
+| `duration_months` | integer | Yes | License duration (1-120 months) |
+| `exclusive` | boolean | No | Exclusive license (default: `false`) |
+| `notes` | string | No | Additional context (max 1,000 characters) |
+
+### Create the License
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch("https://api.protoforge.com/v1/licenses", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    track_id: "trk_abc123",
+    usage_type: "tv",
+    territory: ["GB", "US"],
+    duration_months: 12,
+    exclusive: false,
+    notes: "Background music for documentary series"
+  })
+});
+
+const license = await response.json();
+console.log(`License ${license.id} created with status: ${license.status}`);
+```
+
+```bash cURL
+curl -X POST "https://api.protoforge.com/v1/licenses" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "track_id": "trk_abc123",
+    "usage_type": "tv",
+    "territory": ["GB", "US"],
+    "duration_months": 12,
+    "exclusive": false,
+    "notes": "Background music for documentary series"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.protoforge.com/v1/licenses",
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    },
+    json={
+        "track_id": "trk_abc123",
+        "usage_type": "tv",
+        "territory": ["GB", "US"],
+        "duration_months": 12,
+        "exclusive": False,
+        "notes": "Background music for documentary series"
+    }
+)
+
+license = response.json()
+print(f"License {license['id']} created with status: {license['status']}")
+```
+</CodeGroup>
+
+**Response (201 Created):**
+
+```json
+{
+  "id": "lic_mno345",
+  "track_id": "trk_abc123",
+  "organisation_id": "org_your_org",
+  "usage_type": "tv",
+  "territory": ["GB", "US"],
+  "duration_months": 12,
+  "exclusive": false,
+  "status": "draft",
+  "created_at": "2026-02-22T14:00:00Z",
+  "expires_at": "2027-02-22T14:00:00Z",
+  "contract_id": null
+}
+```
+
+### Check License Status
+
+Retrieve a license to check its current status:
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch("https://api.protoforge.com/v1/licenses/lic_mno345", {
+  headers: { "Authorization": "Bearer pk_test_your_api_key" }
+});
+
+const license = await response.json();
+console.log(`Status: ${license.status}`);
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/licenses/lic_mno345" \
+  -H "Authorization: Bearer pk_test_your_api_key"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.protoforge.com/v1/licenses/lic_mno345",
+    headers={"Authorization": "Bearer pk_test_your_api_key"}
+)
+
+license = response.json()
+print(f"Status: {license['status']}")
+```
+</CodeGroup>
+
+### List Your Licenses
+
+Retrieve all licenses for your organisation with optional filtering:
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch(
+  "https://api.protoforge.com/v1/licenses?status=active&per_page=50",
+  {
+    headers: { "Authorization": "Bearer pk_test_your_api_key" }
+  }
+);
+
+const data = await response.json();
+console.log(`${data.pagination.total} active licenses`);
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/licenses?status=active&per_page=50" \
+  -H "Authorization: Bearer pk_test_your_api_key"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.protoforge.com/v1/licenses",
+    params={"status": "active", "per_page": 50},
+    headers={"Authorization": "Bearer pk_test_your_api_key"}
+)
+
+data = response.json()
+print(f"{data['pagination']['total']} active licenses")
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "lic_mno345",
+      "track_id": "trk_abc123",
+      "usage_type": "tv",
+      "territory": ["GB", "US"],
+      "status": "active",
+      "expires_at": "2027-02-22T14:00:00Z"
+    }
+  ],
+  "pagination": { "page": 1, "per_page": 50, "total": 1 }
+}
+```
+
+</Steps>
+
+## License Lifecycle
+
+Licenses progress through four states:
+
+| Status | Description | Transitions To |
+|--------|-------------|----------------|
+| `draft` | Just created, pending approval | `active` |
+| `active` | Approved and in effect | `expired`, `revoked` |
+| `expired` | Duration ended naturally | — |
+| `revoked` | Manually revoked before expiry | — |
+
+## Validation Rules
+
+ProtoForge validates every license creation request:
+
+- **Track must be available** — tracks with status `licensed` (exclusive) or `restricted` cannot be licensed
+- **Valid usage type** — must be one of: `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media`
+- **Valid territory codes** — must be ISO 3166-1 alpha-2 (e.g., `GB`, `US`, `DE`)
+- **Duration range** — must be between 1 and 120 months
+- **Territory availability** — the track must be available in all requested territories
+
+## Error Handling
+
+<Snippet file="snippets/rate-limits.mdx" />
+
+Common error responses when creating licenses:
+
+```json
+// 404 — Track not found
+{
+  "error": {
+    "code": "not_found",
+    "message": "Track trk_invalid does not exist"
+  }
+}
+
+// 422 — Validation error
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Track is not available in requested territories",
+    "details": [
+      { "field": "territory", "issue": "Track trk_abc123 is not available in JP" }
+    ]
+  }
+}
+
+// 409 — Conflict
+{
+  "error": {
+    "code": "conflict",
+    "message": "Track trk_abc123 has an active exclusive license in GB"
+  }
+}
+```
+
+<Accordion title="Common Mistakes">
+
+**Missing required fields**
+All four required fields (`track_id`, `usage_type`, `territory`, `duration_months`) must be present. Omitting any returns a `400 Bad Request`.
+
+**Invalid usage_type enum value**
+The `usage_type` must be exactly one of the six allowed values. Common mistake: using `"commercial"` instead of `"advertising"`.
+
+**Territory as string instead of array**
+The `territory` field must always be an array, even for a single territory: `["GB"]` not `"GB"`.
+
+**Duration exceeding maximum**
+`duration_months` must be between 1 and 120 (10 years). For longer terms, contact ProtoForge support.
+
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Managing Rights" icon="scale-balanced" href="/guides/managing-rights">
+    Work with ISRC codes, rights holders, and percentage splits.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
+    Subscribe to license and contract events.
+  </Card>
+  <Card title="Bulk Operations" icon="upload" href="/guides/bulk-operations">
+    Import multiple licenses via CSV upload.
+  </Card>
+</CardGroup>

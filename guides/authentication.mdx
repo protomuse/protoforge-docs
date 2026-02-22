@@ -1,0 +1,151 @@
+---
+title: "ProtoForge Authentication with API Keys"
+description: "Set up Bearer token authentication with test keys (pk_test_) and live keys (pk_live_) for org-scoped API access"
+---
+
+# ProtoForge Authentication with API Keys
+
+<Callout type="info" title="What This Guide Covers">
+  How to authenticate with the ProtoForge API using Bearer tokens, understand test vs live keys, and configure org-scoped access.
+</Callout>
+
+## Prerequisites
+
+- A ProtoForge account at [app.protoforge.com](https://app.protoforge.com)
+
+<Snippet file="snippets/test-mode.mdx" />
+
+## How Authentication Works
+
+Every ProtoForge API request requires a Bearer token in the `Authorization` header. API keys are org-scoped — all resources created with a key belong to that organisation.
+
+<Steps>
+
+### Get Your API Key
+
+1. Log in to [app.protoforge.com](https://app.protoforge.com)
+2. Navigate to **Settings > API Keys**
+3. Click **Create Key** and choose test or live mode
+4. Copy the key — it will only be shown once
+
+### Set the Authorization Header
+
+Include your API key as a Bearer token in every request:
+
+<Snippet file="snippets/auth-header.mdx" />
+
+### Make Your First Authenticated Request
+
+Verify your key works by searching the track catalogue:
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch("https://api.protoforge.com/v1/tracks/search?genre=ambient", {
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json"
+  }
+});
+
+if (response.status === 401) {
+  console.error("Invalid API key — check your Authorization header");
+} else {
+  const data = await response.json();
+  console.log(`Found ${data.pagination.total} tracks`);
+}
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/tracks/search?genre=ambient" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json" \
+  -w "\nHTTP Status: %{http_code}\n"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.protoforge.com/v1/tracks/search",
+    params={"genre": "ambient"},
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    }
+)
+
+if response.status_code == 401:
+    print("Invalid API key — check your Authorization header")
+else:
+    data = response.json()
+    print(f"Found {data['pagination']['total']} tracks")
+```
+</CodeGroup>
+
+**Response (200 OK):**
+
+```json
+{
+  "data": [
+    {
+      "id": "trk_abc123",
+      "title": "Ethereal Waves",
+      "artist": "Ambient Works",
+      "bpm": 72,
+      "genre": "ambient",
+      "status": "available"
+    }
+  ],
+  "pagination": { "page": 1, "per_page": 20, "total": 1 }
+}
+```
+
+</Steps>
+
+## Key Concepts
+
+### Org-Scoped Access
+
+API keys are tied to a single organisation. When you create a license or register a webhook, that resource belongs to your organisation and is invisible to other organisations.
+
+### Key Rotation
+
+To rotate a key:
+
+1. Create a new key in **Settings > API Keys**
+2. Update your application to use the new key
+3. Revoke the old key once all traffic migrates
+
+There is no downtime — both keys work simultaneously until you revoke the old one.
+
+### Security Best Practices
+
+- Never expose API keys in client-side code, Git repositories, or logs
+- Use environment variables to store keys
+- Use test keys (`pk_test_`) during development — they cannot create real licenses
+- Rotate keys immediately if exposed
+
+<Accordion title="Common Mistakes">
+
+**Wrong header format**
+```
+# Wrong — missing "Bearer" prefix
+Authorization: pk_test_your_api_key
+
+# Correct
+Authorization: Bearer pk_test_your_api_key
+```
+
+**Using live key in test environment**
+Live keys (`pk_live_`) create real licenses and may trigger payments. Always use `pk_test_` keys during development.
+
+**Key in query parameters**
+API keys must be sent in the `Authorization` header, never as query parameters.
+
+</Accordion>
+
+## Next Steps
+
+<Card title="Searching the Track Catalogue" icon="magnifying-glass" href="/guides/searching-catalogue">
+  Filter tracks by BPM, key, genre, mood, and territory with the search API.
+</Card>

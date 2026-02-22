@@ -1,0 +1,32 @@
+---
+title: "Authorization Header"
+---
+
+<CodeGroup>
+```typescript
+const response = await fetch("https://api.protoforge.com/v1/tracks/search", {
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json"
+  }
+});
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/tracks/search" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json"
+```
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.protoforge.com/v1/tracks/search",
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    }
+)
+```
+</CodeGroup>

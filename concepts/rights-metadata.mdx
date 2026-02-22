@@ -1,0 +1,135 @@
+---
+title: "Rights Metadata and Revenue Splits"
+description: "ISRC codes, IPI numbers, rights holder percentages, the 100% sum rule, and how ProtoForge validates metadata integrity"
+---
+
+# Rights Metadata and Revenue Splits
+
+Every piece of recorded music has a complex web of rights attached to it. ProtoForge tracks this metadata to ensure every sync license correctly identifies who gets paid and how much.
+
+## What is Rights Metadata?
+
+Rights metadata is the structured information that describes:
+
+- **Who** owns rights to a recording (writers, publishers, performers)
+- **What** rights each party controls (composition, master recording, performance)
+- **How much** each party receives from licensing revenue (percentage splits)
+- **Where** the track can be licensed (territory restrictions)
+
+## Industry Standard Identifiers
+
+The music industry uses standardised codes to uniquely identify works, recordings, and parties:
+
+### ISRC — International Standard Recording Code
+
+Every recording has a unique ISRC in the format `CC-XXX-YY-NNNNN`:
+
+| Component | Description | Example |
+|-----------|-------------|---------|
+| `CC` | Country of registration (ISO 3166-1) | `GB` |
+| `XXX` | Registrant code (assigned by national agency) | `ABC` |
+| `YY` | Year of registration | `24` |
+| `NNNNN` | Designation code (unique per registrant per year) | `00001` |
+
+**Example:** `GB-ABC-24-00001` identifies a specific recording registered in the UK in 2024.
+
+### ISWC — International Standard Musical Work Code
+
+The ISWC identifies the underlying musical composition (not the recording). Format: `T-DDD.DDD.DDD-C`
+
+- A single composition (ISWC) can have multiple recordings (ISRCs)
+- For example, a composition and its cover version share the same ISWC but have different ISRCs
+
+### IPI — Interested Parties Information
+
+IPI numbers identify individuals and organisations involved in music rights:
+
+- **IPI Name Number** — 9-11 digits, identifies a person or entity
+- **IPI Base Number** — links all name variations to a single party
+- Used by collection societies (PRS, ASCAP, BMI, GEMA, SACEM) worldwide
+
+## Rights Holders and Roles
+
+Every track in ProtoForge lists its rights holders with three properties:
+
+| Property | Description |
+|----------|-------------|
+| `name` | Legal name of the rights holder |
+| `role` | `writer`, `publisher`, or `performer` |
+| `share_percentage` | Percentage of licensing revenue allocated to this party |
+
+### Understanding Roles
+
+| Role | Controls | Typical Share |
+|------|----------|--------------|
+| **Writer** | The musical composition — melody, harmony, lyrics | 30-60% |
+| **Publisher** | Publishing rights — licensing authority, catalogue management | 20-50% |
+| **Performer** | The master recording — the specific performance captured | 10-30% |
+
+A single person can hold multiple roles (e.g., a singer-songwriter who is both writer and performer).
+
+## The 100% Rule
+
+<Callout type="warning" title="Splits Must Sum to Exactly 100%">
+  Every track's rights holder shares must sum to exactly 100%. No more, no less. ProtoForge enforces this automatically — tracks with incomplete or over-allocated splits cannot be licensed.
+</Callout>
+
+### Why 100%?
+
+If shares do not total 100%, revenue distribution is ambiguous:
+
+- **Under 100%** — Unclaimed revenue has no designated recipient
+- **Over 100%** — More money is owed than received, creating a deficit
+- **Exactly 100%** — Every pound of licensing revenue is accounted for
+
+### Example Splits
+
+**Simple (two parties):**
+
+| Rights Holder | Role | Share |
+|--------------|------|-------|
+| Sarah Chen | Writer | 60% |
+| Horizon Publishing | Publisher | 40% |
+| **Total** | | **100%** |
+
+**Complex (four parties):**
+
+| Rights Holder | Role | Share |
+|--------------|------|-------|
+| Alex Morgan | Writer | 35% |
+| Jamie Walsh | Writer | 15% |
+| Neon Music Publishing | Publisher | 30% |
+| Synthwave Collective | Performer | 20% |
+| **Total** | | **100%** |
+
+## Territory Restrictions
+
+Rights can be territory-specific. A publisher may control rights in the UK and Europe but not in the US or Asia. ProtoForge tracks this with the `available_territories` field:
+
+- Each territory uses ISO 3166-1 alpha-2 codes (e.g., `GB`, `US`, `DE`, `JP`)
+- A track can only be licensed in territories listed in `available_territories`
+- Attempting to license in an unavailable territory returns a validation error
+
+## How ProtoForge Validates Metadata
+
+ProtoForge runs automated validation on every track:
+
+| Check | Rule | Result if Invalid |
+|-------|------|-------------------|
+| ISRC format | Must match `CC-XXX-YY-NNNNN` pattern | Track marked `restricted` |
+| Rights holder shares | Must sum to exactly 100% | Track marked `restricted` |
+| Territory codes | Must be valid ISO 3166-1 alpha-2 | Territory rejected |
+| IPI numbers | Must pass modulo-10 check digit | Warning flagged |
+
+Tracks that fail validation receive status `restricted` and cannot be licensed until their metadata is corrected.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Contract Templates" icon="file-contract" href="/concepts/contract-templates">
+    How ProtoForge generates deterministic contracts from pre-approved clauses.
+  </Card>
+  <Card title="Managing Rights via API" icon="code" href="/guides/managing-rights">
+    Work with rights metadata programmatically using the ProtoForge API.
+  </Card>
+</CardGroup>

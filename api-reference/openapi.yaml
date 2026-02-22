@@ -1,0 +1,1328 @@
+openapi: 3.1.0
+info:
+  title: ProtoForge API
+  version: 1.0.0
+  description: >
+    The ProtoForge API provides programmatic access to sync licensing automation.
+    Search music catalogues, create licenses, generate contracts from pre-approved
+    clause libraries, and manage the entire sync licensing workflow in seconds
+    instead of weeks.
+  contact:
+    name: ProtoForge Support
+    email: support@protoforge.com
+    url: https://protoforge.com/support
+  license:
+    name: Proprietary
+    url: https://protoforge.com/terms
+
+servers:
+  - url: https://api.protoforge.com/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Tracks
+    description: Search the catalogue and retrieve track details with rights metadata
+  - name: Licenses
+    description: Create, retrieve, and list sync licenses
+  - name: Contracts
+    description: Generate and retrieve contracts from templates
+  - name: Templates
+    description: Manage Handlebars contract templates with typed tokens
+  - name: Webhooks
+    description: Subscribe to real-time event notifications
+  - name: Bulk
+    description: CSV upload for batch license creation
+
+paths:
+  /v1/tracks/search:
+    get:
+      operationId: searchTracks
+      summary: Search tracks
+      description: >
+        Search the music catalogue by keyword, BPM range, key, genre, mood,
+        territory availability, and status. Returns paginated results with full
+        rights metadata. Rate limit: 100 requests per minute.
+      tags:
+        - Tracks
+      parameters:
+        - name: q
+          in: query
+          description: Free-text search across title, artist, and metadata
+          schema:
+            type: string
+        - name: bpm_min
+          in: query
+          description: Minimum BPM (inclusive)
+          schema:
+            type: integer
+        - name: bpm_max
+          in: query
+          description: Maximum BPM (inclusive)
+          schema:
+            type: integer
+        - name: key
+          in: query
+          description: Musical key (e.g. "C major", "A minor")
+          schema:
+            type: string
+        - name: genre
+          in: query
+          description: Genre filter
+          schema:
+            type: string
+        - name: mood
+          in: query
+          description: Mood filter
+          schema:
+            type: string
+        - name: territory
+          in: query
+          description: ISO 3166-1 alpha-2 territory code for availability filtering
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Track availability status
+          schema:
+            type: string
+            enum:
+              - available
+              - licensed
+              - restricted
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Results per page
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: sort
+          in: query
+          description: Sort order for results
+          schema:
+            type: string
+            enum:
+              - relevance
+              - title
+              - bpm
+              - duration
+      responses:
+        "200":
+          description: Successful search results
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Track"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/tracks/{id}:
+    get:
+      operationId: getTrack
+      summary: Get a track
+      description: >
+        Retrieve a single track by ID, including full rights holder metadata,
+        available territories, and current status. Rate limit: 100 requests per minute.
+      tags:
+        - Tracks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Track ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Track details
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Track"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/licenses:
+    post:
+      operationId: createLicense
+      summary: Create a license
+      description: >
+        Create a new sync license for a track. Specify usage type, territories,
+        duration, and exclusivity. The license is created in draft status and must
+        be approved before a contract can be generated. Rate limit: 30 requests per minute.
+      tags:
+        - Licenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLicenseRequest"
+      responses:
+        "201":
+          description: License created
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/License"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listLicenses
+      summary: List licenses
+      description: >
+        List all licenses for the authenticated organisation. Filter by status
+        or track ID. Returns paginated results. Rate limit: 100 requests per minute.
+      tags:
+        - Licenses
+      parameters:
+        - name: status
+          in: query
+          description: Filter by license status
+          schema:
+            type: string
+            enum:
+              - draft
+              - active
+              - expired
+              - revoked
+        - name: track_id
+          in: query
+          description: Filter by track ID
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Results per page
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated list of licenses
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/License"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - data
+                  - pagination
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/licenses/{id}:
+    get:
+      operationId: getLicense
+      summary: Get a license
+      description: >
+        Retrieve a single license by ID, including status, territory,
+        and linked contract information. Rate limit: 100 requests per minute.
+      tags:
+        - Licenses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: License ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: License details
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/License"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/contracts:
+    post:
+      operationId: generateContract
+      summary: Generate a contract
+      description: >
+        Generate a contract from a license and template. The assembly engine
+        selects pre-approved clauses, populates tokens, and produces a
+        deterministic output. Same inputs always produce the same contract.
+        Rate limit: 20 requests per minute.
+      tags:
+        - Contracts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                license_id:
+                  type: string
+                  description: ID of the approved license
+                template_id:
+                  type: string
+                  description: ID of the contract template to use
+                tokens:
+                  type: object
+                  description: Key-value pairs of token values to populate in the template
+                  additionalProperties: true
+              required:
+                - license_id
+                - template_id
+      responses:
+        "201":
+          description: Contract generated
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/contracts/{id}:
+    get:
+      operationId: getContract
+      summary: Get a contract
+      description: >
+        Retrieve a single contract by ID, including status, PDF URL (when
+        available), confidence score, and signature timestamps.
+        Rate limit: 100 requests per minute.
+      tags:
+        - Contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contract ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Contract details
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contract"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/templates:
+    get:
+      operationId: listTemplates
+      summary: List templates
+      description: >
+        List all available contract templates for the authenticated organisation.
+        Each template includes its token schema describing the required and
+        optional tokens. Rate limit: 100 requests per minute.
+      tags:
+        - Templates
+      responses:
+        "200":
+          description: List of templates
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Template"
+                required:
+                  - data
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: createTemplate
+      summary: Create a template
+      description: >
+        Create a new contract template with a Handlebars body and typed token
+        schema. Templates define the structure of generated contracts and which
+        tokens must be supplied at generation time. Rate limit: 30 requests per minute.
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Human-readable template name
+                description:
+                  type: string
+                  description: Description of the template's purpose and use case
+                body:
+                  type: string
+                  description: Handlebars template body with token placeholders
+                token_schema:
+                  type: object
+                  description: JSON Schema describing required and optional tokens
+                  additionalProperties: true
+              required:
+                - name
+                - body
+                - token_schema
+      responses:
+        "201":
+          description: Template created
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/templates/{id}:
+    get:
+      operationId: getTemplate
+      summary: Get a template
+      description: >
+        Retrieve a single template by ID, including the full Handlebars body
+        and token schema. Rate limit: 100 requests per minute.
+      tags:
+        - Templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Template ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Template details
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/webhooks:
+    post:
+      operationId: createWebhook
+      summary: Create a webhook
+      description: >
+        Register a webhook endpoint to receive real-time notifications when
+        resource state changes occur. You must specify which event types to
+        subscribe to. Rate limit: 30 requests per minute.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  description: HTTPS endpoint URL to receive webhook payloads
+                events:
+                  type: array
+                  description: Event types to subscribe to
+                  items:
+                    type: string
+                    enum:
+                      - license.created
+                      - license.approved
+                      - license.expired
+                      - contract.generated
+                      - contract.signed
+                      - payment.confirmed
+                      - payment.failed
+              required:
+                - url
+                - events
+      responses:
+        "201":
+          description: Webhook created
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Webhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listWebhooks
+      summary: List webhooks
+      description: >
+        List all registered webhooks for the authenticated organisation.
+        Rate limit: 100 requests per minute.
+      tags:
+        - Webhooks
+      responses:
+        "200":
+          description: List of webhooks
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Webhook"
+                required:
+                  - data
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/webhooks/{id}:
+    delete:
+      operationId: deleteWebhook
+      summary: Delete a webhook
+      description: >
+        Delete a registered webhook by ID. The endpoint will immediately stop
+        receiving event notifications. Rate limit: 30 requests per minute.
+      tags:
+        - Webhooks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Webhook ID
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Webhook deleted
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /v1/bulk/licenses:
+    post:
+      operationId: bulkCreateLicenses
+      summary: Bulk create licenses
+      description: >
+        Upload a CSV file to create multiple licenses in a single operation.
+        The file is processed asynchronously. Poll the returned bulk result ID
+        for status updates. Rate limit: 5 requests per minute.
+      tags:
+        - Bulk
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file containing license data
+              required:
+                - file
+      responses:
+        "202":
+          description: Bulk operation accepted for processing
+          headers:
+            X-RateLimit-Limit:
+              $ref: "#/components/headers/X-RateLimit-Limit"
+            X-RateLimit-Remaining:
+              $ref: "#/components/headers/X-RateLimit-Remaining"
+            X-RateLimit-Reset:
+              $ref: "#/components/headers/X-RateLimit-Reset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Obtain a Bearer token from the ProtoForge dashboard under
+        Settings > API Keys. Include it in every request as
+        `Authorization: Bearer <token>`.
+
+  headers:
+    X-RateLimit-Limit:
+      description: Maximum number of requests allowed in the current window
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Number of requests remaining in the current window
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: Unix timestamp (seconds) when the rate limit window resets
+      schema:
+        type: integer
+
+  schemas:
+    Track:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique track identifier
+        title:
+          type: string
+          description: Track title
+        artist:
+          type: string
+          description: Primary artist name
+        duration_seconds:
+          type: number
+          description: Track duration in seconds
+        bpm:
+          type: integer
+          description: Beats per minute
+        key:
+          type: string
+          description: Musical key (e.g. "C major")
+        genre:
+          type: string
+          description: Primary genre
+        mood:
+          type: array
+          description: List of mood descriptors
+          items:
+            type: string
+        isrc:
+          type: string
+          description: International Standard Recording Code
+          pattern: "^[A-Z]{2}-[A-Z0-9]{3}-[0-9]{2}-[0-9]{5}$"
+        rights_holders:
+          type: array
+          description: Rights holders with roles and share percentages
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Rights holder name
+              role:
+                type: string
+                enum:
+                  - writer
+                  - publisher
+                  - performer
+                description: Role in the work
+              share_percentage:
+                type: number
+                minimum: 0
+                maximum: 100
+                description: Ownership share as a percentage (0-100)
+            required:
+              - name
+              - role
+              - share_percentage
+        available_territories:
+          type: array
+          description: ISO 3166-1 alpha-2 country codes where the track is available
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+            - available
+            - licensed
+            - restricted
+          description: Current availability status
+      required:
+        - id
+        - title
+        - artist
+        - duration_seconds
+        - status
+
+    CreateLicenseRequest:
+      type: object
+      properties:
+        track_id:
+          type: string
+          description: ID of the track to license
+        usage_type:
+          type: string
+          enum:
+            - film
+            - tv
+            - advertising
+            - digital
+            - gaming
+            - social_media
+          description: Intended usage type for the sync license
+        territory:
+          type: array
+          description: ISO 3166-1 alpha-2 territory codes where the license applies
+          items:
+            type: string
+        duration_months:
+          type: integer
+          minimum: 1
+          maximum: 120
+          description: License duration in months (1-120)
+        exclusive:
+          type: boolean
+          default: false
+          description: Whether the license grants exclusive rights
+        notes:
+          type: string
+          maxLength: 1000
+          description: Additional notes or special terms
+      required:
+        - track_id
+        - usage_type
+        - territory
+        - duration_months
+
+    License:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique license identifier
+        track_id:
+          type: string
+          description: ID of the licensed track
+        organisation_id:
+          type: string
+          description: ID of the organisation that owns the license
+        usage_type:
+          type: string
+          enum:
+            - film
+            - tv
+            - advertising
+            - digital
+            - gaming
+            - social_media
+          description: Licensed usage type
+        territory:
+          type: array
+          description: Licensed territories
+          items:
+            type: string
+        duration_months:
+          type: integer
+          description: License duration in months
+        exclusive:
+          type: boolean
+          description: Whether the license is exclusive
+        status:
+          type: string
+          enum:
+            - draft
+            - active
+            - expired
+            - revoked
+          description: Current license status
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 creation timestamp
+        expires_at:
+          type: string
+          format: date-time
+          description: ISO 8601 expiration timestamp
+        contract_id:
+          type: string
+          nullable: true
+          description: ID of the associated contract, if one has been generated
+      required:
+        - id
+        - track_id
+        - organisation_id
+        - usage_type
+        - territory
+        - duration_months
+        - exclusive
+        - status
+        - created_at
+        - expires_at
+
+    Contract:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique contract identifier
+        license_id:
+          type: string
+          description: ID of the associated license
+        template_id:
+          type: string
+          description: ID of the template used to generate the contract
+        version:
+          type: string
+          description: Semantic version of the contract (e.g. "1.0.0")
+        status:
+          type: string
+          enum:
+            - draft
+            - review
+            - signed
+          description: Current contract status
+        pdf_url:
+          type: string
+          nullable: true
+          description: URL to download the generated PDF (null until generated)
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Assembly confidence score (0-100) indicating clause coverage completeness
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 creation timestamp
+        signed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO 8601 timestamp when all parties signed (null until signed)
+      required:
+        - id
+        - license_id
+        - template_id
+        - version
+        - status
+        - confidence_score
+        - created_at
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique template identifier
+        name:
+          type: string
+          description: Human-readable template name
+        description:
+          type: string
+          description: Description of the template's purpose
+        body:
+          type: string
+          description: Handlebars template body with token placeholders
+        token_schema:
+          type: object
+          description: JSON Schema describing required and optional tokens
+          additionalProperties: true
+        version:
+          type: string
+          description: Semantic version of the template
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 creation timestamp
+      required:
+        - id
+        - name
+        - body
+        - token_schema
+        - version
+        - created_at
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique webhook identifier
+        url:
+          type: string
+          format: uri
+          description: HTTPS endpoint URL receiving webhook payloads
+        events:
+          type: array
+          description: Subscribed event types
+          items:
+            type: string
+            enum:
+              - license.created
+              - license.approved
+              - license.expired
+              - contract.generated
+              - contract.signed
+              - payment.confirmed
+              - payment.failed
+        active:
+          type: boolean
+          description: Whether the webhook is currently active
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 creation timestamp
+      required:
+        - id
+        - url
+        - events
+        - active
+        - created_at
+
+    WebhookEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique event identifier
+        type:
+          type: string
+          enum:
+            - license.created
+            - license.approved
+            - license.expired
+            - contract.generated
+            - contract.signed
+            - payment.confirmed
+            - payment.failed
+          description: Event type
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        data:
+          type: object
+          description: Event-specific payload data
+          additionalProperties: true
+      required:
+        - id
+        - type
+        - created_at
+        - data
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - bad_request
+                - unauthorized
+                - forbidden
+                - not_found
+                - conflict
+                - validation_error
+                - rate_limited
+                - internal_error
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: array
+              description: Field-level validation errors (present for validation_error)
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: The field that caused the error
+                  issue:
+                    type: string
+                    description: Description of the validation issue
+                required:
+                  - field
+                  - issue
+          required:
+            - code
+            - message
+      required:
+        - error
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        per_page:
+          type: integer
+          description: Results per page
+        total:
+          type: integer
+          description: Total number of results across all pages
+      required:
+        - page
+        - per_page
+        - total
+
+    BulkResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique bulk operation identifier
+        status:
+          type: string
+          enum:
+            - processing
+            - completed
+            - failed
+          description: Current processing status
+        total_rows:
+          type: integer
+          description: Total number of rows in the uploaded CSV
+        success_count:
+          type: integer
+          description: Number of successfully created licenses
+        error_count:
+          type: integer
+          description: Number of rows that failed
+        errors:
+          type: array
+          description: Details of individual row failures
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+                description: Row number in the CSV (1-indexed)
+              field:
+                type: string
+                description: The field that caused the error
+              issue:
+                type: string
+                description: Description of the error
+            required:
+              - row
+              - issue
+      required:
+        - id
+        - status
+        - total_rows
+        - success_count
+        - error_count
+        - errors
+
+  responses:
+    BadRequest:
+      description: Bad request - malformed syntax or missing required parameters
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid Bearer token
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Forbidden:
+      description: Forbidden - valid token but insufficient permissions
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Conflict:
+      description: Conflict - the request conflicts with the current state of the resource
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    ValidationError:
+      description: Validation error - the request body failed schema validation
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    RateLimited:
+      description: Rate limited - too many requests in the current window
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    InternalError:
+      description: Internal server error - an unexpected error occurred
+      headers:
+        X-RateLimit-Limit:
+          $ref: "#/components/headers/X-RateLimit-Limit"
+        X-RateLimit-Remaining:
+          $ref: "#/components/headers/X-RateLimit-Remaining"
+        X-RateLimit-Reset:
+          $ref: "#/components/headers/X-RateLimit-Reset"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

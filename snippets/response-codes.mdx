@@ -1,0 +1,27 @@
+All ProtoForge API errors return a consistent JSON structure:
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Rights holder splits must sum to exactly 100%",
+    "details": [
+      {
+        "field": "rights_holders.share_percentage",
+        "issue": "Sum is 95%, expected 100%"
+      }
+    ]
+  }
+}
+```
+
+| Status Code | Error Code | Description |
+|-------------|------------|-------------|
+| 400 | `bad_request` | Invalid request body or query parameters |
+| 401 | `unauthorized` | Missing or invalid API key |
+| 403 | `forbidden` | Valid key but insufficient permissions for this resource |
+| 404 | `not_found` | Resource does not exist or belongs to a different organisation |
+| 409 | `conflict` | Duplicate resource or state conflict (e.g., license already active) |
+| 422 | `validation_error` | Validation failed (e.g., rights splits do not sum to 100%) |
+| 429 | `rate_limited` | Rate limit exceeded — retry after `X-RateLimit-Reset` |
+| 500 | `internal_error` | Unexpected server error — contact support if persistent |

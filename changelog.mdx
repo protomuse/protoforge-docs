@@ -1,0 +1,38 @@
+---
+title: "ProtoForge Changelog"
+description: "Version history of API changes, new endpoints, deprecations, and SDK releases"
+---
+
+# ProtoForge Changelog
+
+## v1.0.0 — February 2026
+
+**Initial Release**
+
+### API
+
+- **Tracks** — Search the catalogue by BPM, key, genre, mood, territory, and availability (`GET /v1/tracks/search`, `GET /v1/tracks/{id}`)
+- **Licenses** — Create, retrieve, and list sync licenses (`POST /v1/licenses`, `GET /v1/licenses/{id}`, `GET /v1/licenses`)
+- **Contracts** — Generate and retrieve contracts from templates (`POST /v1/contracts`, `GET /v1/contracts/{id}`)
+- **Templates** — Manage Handlebars contract templates (`GET /v1/templates`, `POST /v1/templates`, `GET /v1/templates/{id}`)
+- **Webhooks** — Subscribe to 7 event types (`POST /v1/webhooks`, `GET /v1/webhooks`, `DELETE /v1/webhooks/{id}`)
+- **Bulk** — CSV upload for batch license creation (`POST /v1/bulk/licenses`)
+
+### SDKs
+
+- `@protoforge/sdk` v1.0.0 — TypeScript SDK with typed client, pagination helpers, and error handling
+- `protoforge` v1.0.0 — Python SDK with type hints and built-in retry logic
+
+### Authentication
+
+- Bearer token authentication with org-scoped API keys
+- Test mode (`pk_test_*`) and live mode (`pk_live_*`) key variants
+- Rate limiting per endpoint category (Search: 100/min, License: 30/min, Contract: 20/min, Bulk: 5/min)
+
+### Documentation
+
+- Mintlify documentation site at `docs.protoforge.com`
+- Interactive API playground with test key support
+- 6 progressive integration guides
+- Agent skill file (`skill.md`) for AI coding assistants
+- Auto-generated `llms.txt` and MCP server

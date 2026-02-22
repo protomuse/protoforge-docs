@@ -1,0 +1,75 @@
+---
+title: "ProtoForge API Reference"
+description: "API overview with authentication, rate limits, error codes, and pagination — gateway to auto-generated endpoint pages"
+---
+
+# ProtoForge API Reference
+
+The ProtoForge API is a REST API that enables programmatic access to sync licensing automation. All endpoints accept and return JSON, use Bearer token authentication, and follow consistent error handling patterns.
+
+**Base URL:** `https://api.protoforge.com/v1`
+
+## Authentication
+
+All API requests require a Bearer token in the `Authorization` header.
+
+<Snippet file="snippets/auth-header.mdx" />
+
+<Snippet file="snippets/test-mode.mdx" />
+
+## Rate Limits
+
+<Snippet file="snippets/rate-limits.mdx" />
+
+## Pagination
+
+List endpoints return paginated results. Use `page` and `per_page` query parameters to navigate:
+
+| Parameter | Type | Default | Max | Description |
+|-----------|------|---------|-----|-------------|
+| `page` | integer | 1 | — | Page number (1-indexed) |
+| `per_page` | integer | 20 | 100 | Results per page |
+
+Every paginated response includes a `pagination` object:
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 142
+  }
+}
+```
+
+## Error Handling
+
+<Snippet file="snippets/response-codes.mdx" />
+
+## Endpoint Groups
+
+The API is organized into 6 groups:
+
+| Group | Endpoints | Description |
+|-------|-----------|-------------|
+| [Tracks](/api-reference/endpoint/searchTracks) | 2 | Search the catalogue and retrieve track details with rights metadata |
+| [Licenses](/api-reference/endpoint/createLicense) | 3 | Create, retrieve, and list sync licenses |
+| [Contracts](/api-reference/endpoint/generateContract) | 2 | Generate and retrieve contracts from templates |
+| [Templates](/api-reference/endpoint/listTemplates) | 3 | Manage Handlebars contract templates with typed tokens |
+| [Webhooks](/api-reference/endpoint/createWebhook) | 3 | Subscribe to real-time event notifications |
+| [Bulk](/api-reference/endpoint/bulkCreateLicenses) | 1 | CSV upload for batch license creation |
+
+## Webhook Events
+
+ProtoForge sends webhook events when resource state changes. Subscribe to specific event types when creating a webhook.
+
+| Event | Trigger | Key Payload Fields |
+|-------|---------|-------------------|
+| `license.created` | New license created | license_id, track_id, status |
+| `license.approved` | License approved | license_id, approved_by |
+| `license.expired` | License term ended | license_id, expired_at |
+| `contract.generated` | Contract assembled | contract_id, version, confidence_score |
+| `contract.signed` | All parties signed | contract_id, signed_at, signers |
+| `payment.confirmed` | Payment received | payment_id, amount, currency |
+| `payment.failed` | Payment failed | payment_id, error_code, retry_at |

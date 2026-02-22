@@ -1,0 +1,100 @@
+---
+title: "Multi-Tenancy and Data Isolation"
+description: "How ProtoForge isolates data between organisations with org-scoped API keys, permissions, and audit trails"
+---
+
+# Multi-Tenancy and Data Isolation
+
+ProtoForge is a multi-tenant platform — multiple organisations use the same infrastructure while their data remains completely isolated. An organisation's tracks, licenses, contracts, and templates are invisible to every other organisation.
+
+## How Data Isolation Works
+
+### Org-Scoped API Keys
+
+Every API key belongs to a single organisation. When you authenticate with an API key, all operations are scoped to that organisation:
+
+- **Search** returns only tracks in your organisation's catalogue
+- **Licenses** you create belong to your organisation
+- **Templates** you create are visible only to your organisation
+- **Webhooks** deliver events only for your organisation's resources
+
+There is no way to access another organisation's data through the API, even with a valid API key.
+
+### Organisation Boundaries
+
+| Resource | Scoped To | Cross-Org Visible? |
+|----------|-----------|-------------------|
+| Tracks | Organisation catalogue | No |
+| Licenses | Organisation | No |
+| Contracts | Organisation | No |
+| Templates | Organisation | No |
+| Webhooks | Organisation | No |
+| API Keys | Organisation | No |
+| Audit Logs | Organisation | No |
+
+### Key Separation
+
+ProtoForge maintains separate API keys for each environment:
+
+| Key Type | Prefix | Environment | Access |
+|----------|--------|-------------|--------|
+| Test | `pk_test_` | Sandbox | Sample tracks, no real licenses |
+| Live | `pk_live_` | Production | Real catalogue, binding licenses |
+
+Test and live environments are fully isolated — a test key cannot access live data and vice versa.
+
+## Permissions and Access Control
+
+Within an organisation, ProtoForge supports role-based access:
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full access — manage API keys, templates, team members |
+| **Admin** | Create and manage licenses, contracts, and templates |
+| **Member** | View resources, create licenses (cannot manage templates or keys) |
+| **Viewer** | Read-only access to all resources |
+
+Roles are managed through the ProtoForge dashboard at [app.protoforge.com](https://app.protoforge.com).
+
+## Audit Trails
+
+Every action within an organisation is logged in a tamper-evident audit trail:
+
+- **Who** performed the action (user ID)
+- **What** was done (created, updated, approved, signed)
+- **When** the action occurred (ISO 8601 timestamp)
+- **Which** resources were affected (license ID, contract ID, etc.)
+
+Audit logs are append-only and protected by a SHA-256 hash chain — each entry references the hash of the previous entry, making it impossible to alter historical records without detection.
+
+### Retention
+
+| Data Category | Retention Period |
+|---------------|-----------------|
+| Contract records | 7+ years |
+| Audit logs | 7+ years |
+| Session data | 30 days |
+
+## Data Protection
+
+ProtoForge follows GDPR principles for data handling:
+
+- **Data minimisation** — only data necessary for licensing is collected
+- **Right to access** — export your data via the API at any time
+- **Right to erasure** — soft deletion with pseudonymisation (audit integrity preserved)
+- **Cross-border transfers** — Standard Contractual Clauses for non-EEA transfers
+
+<Callout type="info" title="Compliance">
+  ProtoForge processes contract data under GDPR Article 6(1)(b) — contract performance. Audit logs are retained under Article 6(1)(c) — legal obligation. No data is used for marketing without explicit consent.
+</Callout>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/guides/authentication">
+    Set up API keys and understand org-scoped access.
+  </Card>
+  <Card title="What is Sync Licensing" icon="music" href="/concepts/sync-licensing">
+    Understand the sync licensing process that ProtoForge automates.
+  </Card>
+</CardGroup>

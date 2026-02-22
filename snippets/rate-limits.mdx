@@ -1,0 +1,12 @@
+<Callout type="info" title="Rate Limits">
+  ProtoForge enforces per-key rate limits by endpoint category:
+
+  | Category | Limit | Header |
+  |----------|-------|--------|
+  | Track search | 100 requests/min | `X-RateLimit-Limit: 100` |
+  | License creation | 30 requests/min | `X-RateLimit-Limit: 30` |
+  | Contract generation | 20 requests/min | `X-RateLimit-Limit: 20` |
+  | Bulk operations | 5 requests/min | `X-RateLimit-Limit: 5` |
+
+  Rate limit headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`) are included in every API response. When the limit is exceeded, the API returns `429 Too Many Requests`.
+</Callout>

@@ -1,0 +1,69 @@
+---
+title: "What is ProtoForge"
+description: "Sync licensing automation platform that reduces music licensing from weeks to seconds for film, TV, advertising, and digital content"
+---
+
+# What is ProtoForge
+
+ProtoForge is a sync licensing automation API that transforms the way music rights are licensed for film, TV, advertising, and digital content. What traditionally takes weeks of manual negotiation, ProtoForge completes in seconds through deterministic contract assembly.
+
+## The Problem
+
+Licensing music for visual media — known as **sync licensing** — involves:
+
+1. **Finding the right track** across fragmented catalogues
+2. **Identifying rights holders** (writers, publishers, performers)
+3. **Negotiating terms** with each party individually
+4. **Drafting contracts** with correct legal clauses
+5. **Collecting signatures** from all parties
+
+Each step involves manual effort, email chains, and legal review. A single sync license can take 2-6 weeks to complete.
+
+## How ProtoForge Solves This
+
+ProtoForge provides a REST API that automates the entire pipeline:
+
+| Step | Traditional | ProtoForge |
+|------|------------|------------|
+| Search tracks | Browse multiple catalogues | Single API call with filters |
+| Check rights | Manual rights holder lookup | Rights metadata in every track response |
+| Create license | Draft and negotiate | `POST /v1/licenses` with validated terms |
+| Generate contract | Manual legal drafting | Deterministic assembly from pre-approved clauses |
+| Collect signatures | Email and courier | Integrated e-signature workflow |
+
+## Who Uses ProtoForge
+
+<CardGroup cols={2}>
+  <Card title="Developers" icon="code" href="/quickstart">
+    Build music licensing into your platform with the REST API and SDKs. Start with the quickstart to license your first track in 5 minutes.
+  </Card>
+  <Card title="Music Supervisors" icon="music" href="/concepts/sync-licensing">
+    Understand how ProtoForge automates sync licensing for film, TV, and advertising productions.
+  </Card>
+  <Card title="Publishers" icon="building" href="/concepts/rights-metadata">
+    Learn how ProtoForge handles rights metadata, revenue splits, and territory management.
+  </Card>
+  <Card title="AI Agents" icon="robot" href="https://github.com/protomuse/protoforge-docs/blob/main/skill.md">
+    Discover ProtoForge API capabilities via the agent skill file for Claude Code, Cursor, and other AI coding assistants.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+- **Track Search** — Filter by BPM, key, genre, mood, territory, and availability
+- **Sync Licensing** — Create licenses with usage type, territory, and duration in a single API call
+- **Rights Validation** — ISRC codes, rights holder splits (must sum to 100%), and territory-specific rights
+- **Contract Generation** — Deterministic assembly from 146 pre-approved legal clauses
+- **Webhooks** — Real-time notifications for license, contract, and payment events
+- **Bulk Operations** — CSV upload for batch licensing
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="License a Track in 5 Minutes" icon="rocket" href="/quickstart">
+    Follow the quickstart to authenticate, search, and create your first license.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore all 14 endpoints with interactive "Try it" playground.
+  </Card>
+</CardGroup>

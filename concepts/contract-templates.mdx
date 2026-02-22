@@ -1,0 +1,103 @@
+---
+title: "Contract Template System"
+description: "How Handlebars templates with typed tokens generate deterministic contracts — org-scoped template management and token validation"
+---
+
+# Contract Template System
+
+ProtoForge generates sync licensing contracts using a deterministic template system. Every contract is assembled from pre-approved legal clauses and populated with validated data — no AI-generated legal text, no manual drafting.
+
+## How It Works
+
+The contract generation pipeline has three stages:
+
+### 1. Template Selection
+
+Each organisation manages its own contract templates. A template defines the structure of a contract — which sections appear, in what order, and which data fields (tokens) are required.
+
+Templates use [Handlebars](https://handlebarsjs.com/) syntax for variable substitution:
+
+```handlebars
+This Sync License Agreement ("Agreement") is entered into on {{effective_date}}
+between {{publisher_name}} ("Publisher") and {{writer_name}} ("Writer")
+for the musical work titled "{{work_title}}" (ISRC: {{work_isrc}}).
+```
+
+### 2. Token Validation
+
+Before generating a contract, ProtoForge validates that all required tokens have values. The platform tracks **202 tokens** across 16 categories:
+
+| Category | Example Tokens | Count |
+|----------|---------------|-------|
+| Core Agreement | `agreement_id`, `effective_date`, `territory` | 10 |
+| Work | `work_title`, `work_isrc`, `work_bpm`, `work_genre` | ~23 |
+| Party (Publisher) | `publisher_name`, `publisher_cae_ipi` | 12 |
+| Party (Writer) | `writer_name`, `writer_ipi`, `writer_pro` | 12 |
+| Rights | `total_writer_share`, `sync_revenue_split` | 14 |
+| Financial | Fees, advances, recoupment terms | 14 |
+
+Each token has a defined type (string, number, date, enum) and validation rules. For example:
+- `work_isrc` must match the pattern `CC-XXX-YY-NNNNN`
+- `total_writer_share` + `total_publisher_share` must equal 100
+- `territory` must be a valid ISO 3166-1 alpha-2 code
+
+### 3. Deterministic Assembly
+
+Once tokens are validated, ProtoForge assembles the contract by:
+
+1. Selecting appropriate clauses from a library of **146 pre-approved clauses**
+2. Populating each clause with the validated token values
+3. Combining clauses in the template-defined order
+4. Generating a PDF with consistent formatting
+
+<Callout type="info" title="Same Inputs, Same Outputs">
+  Contract assembly is fully deterministic. Given the same template, tokens, and clause selections, ProtoForge produces a byte-identical contract every time. This is essential for legal audit and compliance.
+</Callout>
+
+## Pre-Approved Clause Library
+
+All legal text in ProtoForge contracts comes from a curated library of 146 clauses across 13 categories:
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Grant of Rights | 27 | Sync rights, master use, assignment |
+| Financial Terms | 20 | Royalties, fees, advances, recoupment |
+| Usage Restrictions | 18 | Territory limits, media restrictions |
+| Representations & Warranties | 8 | Ownership, originality |
+| Compliance | 10 | AI rights, GDPR, electronic consent |
+| Termination | 4 | Breach, expiry, force majeure |
+
+<Callout type="warning" title="No AI-Generated Legal Text">
+  ProtoForge never generates, modifies, or interpolates legal text. Every word in a contract comes from a pre-approved clause that has been reviewed by legal professionals. AI assists with clause selection and token validation only.
+</Callout>
+
+## Org-Scoped Templates
+
+Templates belong to the organisation that created them:
+
+- Each organisation can create custom templates tailored to their licensing workflows
+- Templates are versioned — changes create new versions, preserving the history
+- Templates from one organisation are invisible to other organisations
+
+## Three-Version Output
+
+For every contract, ProtoForge generates three versions with different clause selections:
+
+| Version | Purpose | Use Case |
+|---------|---------|----------|
+| **Conservative** | Maximum licensor protection | Publisher-protective terms |
+| **Balanced** | Standard industry terms | Fair dealing, mutual protection |
+| **Favorable** | Licensee-friendly terms | Quick clearance, minimal restrictions |
+
+The user reviews all three versions and selects the one that best fits the deal before sending for signatures.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Multi-Tenancy" icon="building" href="/concepts/multi-tenancy">
+    How ProtoForge isolates data between organisations.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Create templates and generate contracts via the API.
+  </Card>
+</CardGroup>

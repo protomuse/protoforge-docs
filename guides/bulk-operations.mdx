@@ -1,0 +1,224 @@
+---
+title: "Bulk License Import via CSV"
+description: "Upload CSV files for batch licensing with format specification, validation rules, and error reporting"
+---
+
+# Bulk License Import via CSV
+
+<Callout type="info" title="What This Guide Covers">
+  How to upload CSV files for batch license creation, understand the required CSV format, handle validation errors, and monitor batch progress.
+</Callout>
+
+## Prerequisites
+
+- Authenticated with the ProtoForge API ([Authentication Guide](/guides/authentication))
+- Understand license creation ([Creating Licenses](/guides/creating-licenses))
+
+<Snippet file="snippets/rate-limits.mdx" />
+
+<Callout type="warning" title="Bulk Rate Limit">
+  The bulk import endpoint is limited to **5 requests per minute**. Plan your imports accordingly.
+</Callout>
+
+<Steps>
+
+### Prepare Your CSV File
+
+Create a CSV file with these columns:
+
+| Column | Required | Type | Description |
+|--------|----------|------|-------------|
+| `track_id` | Yes | string | Track ID to license |
+| `usage_type` | Yes | enum | `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media` |
+| `territory` | Yes | string | Comma-separated ISO 3166-1 alpha-2 codes (within quotes if multiple) |
+| `duration_months` | Yes | integer | 1-120 |
+| `exclusive` | No | boolean | `true` or `false` (default: `false`) |
+| `notes` | No | string | Additional context (max 1,000 characters) |
+
+**Example CSV:**
+
+```csv
+track_id,usage_type,territory,duration_months,exclusive,notes
+trk_abc123,film,"GB,US",24,false,Background music for short film
+trk_def456,tv,GB,12,false,Documentary series intro
+trk_ghi789,advertising,"US,DE,FR",6,true,Exclusive campaign use
+```
+
+### Upload the CSV
+
+Send the CSV file as a multipart form upload:
+
+<CodeGroup>
+```typescript TypeScript
+const formData = new FormData();
+formData.append("file", new Blob([csvContent], { type: "text/csv" }), "licenses.csv");
+
+const response = await fetch("https://api.protoforge.com/v1/bulk/licenses", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key"
+  },
+  body: formData
+});
+
+const result = await response.json();
+console.log(`Batch ${result.id}: ${result.status}`);
+```
+
+```bash cURL
+curl -X POST "https://api.protoforge.com/v1/bulk/licenses" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -F "file=@licenses.csv"
+```
+
+```python Python
+import requests
+
+with open("licenses.csv", "rb") as f:
+    response = requests.post(
+        "https://api.protoforge.com/v1/bulk/licenses",
+        headers={"Authorization": "Bearer pk_test_your_api_key"},
+        files={"file": ("licenses.csv", f, "text/csv")}
+    )
+
+result = response.json()
+print(f"Batch {result['id']}: {result['status']}")
+```
+</CodeGroup>
+
+**Response (202 Accepted):**
+
+```json
+{
+  "id": "bulk_pqr678",
+  "status": "processing",
+  "total_rows": 3,
+  "success_count": 0,
+  "error_count": 0,
+  "errors": []
+}
+```
+
+### Monitor Batch Progress
+
+The bulk endpoint returns `202 Accepted` immediately. Poll the batch status to check progress:
+
+<CodeGroup>
+```typescript TypeScript
+const checkStatus = async (batchId: string): Promise<void> => {
+  const response = await fetch(
+    `https://api.protoforge.com/v1/bulk/licenses/${batchId}`,
+    {
+      headers: { "Authorization": "Bearer pk_test_your_api_key" }
+    }
+  );
+
+  const result = await response.json();
+  console.log(`Status: ${result.status} | Success: ${result.success_count} | Errors: ${result.error_count}`);
+};
+
+// Poll every 5 seconds
+const interval = setInterval(async () => {
+  const result = await checkStatus("bulk_pqr678");
+  if (result.status !== "processing") clearInterval(interval);
+}, 5000);
+```
+
+```bash cURL
+# Poll batch status
+curl -X GET "https://api.protoforge.com/v1/bulk/licenses/bulk_pqr678" \
+  -H "Authorization: Bearer pk_test_your_api_key"
+```
+
+```python Python
+import requests
+import time
+
+def check_status(batch_id: str) -> dict:
+    response = requests.get(
+        f"https://api.protoforge.com/v1/bulk/licenses/{batch_id}",
+        headers={"Authorization": "Bearer pk_test_your_api_key"}
+    )
+    return response.json()
+
+# Poll every 5 seconds
+while True:
+    result = check_status("bulk_pqr678")
+    print(f"Status: {result['status']} | Success: {result['success_count']} | Errors: {result['error_count']}")
+    if result["status"] != "processing":
+        break
+    time.sleep(5)
+```
+</CodeGroup>
+
+**Response (completed):**
+
+```json
+{
+  "id": "bulk_pqr678",
+  "status": "completed",
+  "total_rows": 3,
+  "success_count": 2,
+  "error_count": 1,
+  "errors": [
+    {
+      "row": 3,
+      "track_id": "trk_ghi789",
+      "error": {
+        "code": "conflict",
+        "message": "Track trk_ghi789 has an active exclusive license in US"
+      }
+    }
+  ]
+}
+```
+
+### Handle Errors
+
+The `errors` array contains per-row error details. Each error includes the row number, the track ID, and the error response:
+
+| Error Code | Common Cause |
+|-----------|--------------|
+| `not_found` | Track ID does not exist |
+| `validation_error` | Invalid usage type, territory, or duration |
+| `conflict` | Track has an active exclusive license in a requested territory |
+
+Failed rows do not prevent successful rows from being processed. Fix the errors in a new CSV and re-upload only the failed rows.
+
+</Steps>
+
+## CSV Validation Rules
+
+ProtoForge validates the CSV before processing:
+
+- **UTF-8 encoding** — file must be UTF-8 encoded
+- **Header row required** — first row must contain column names exactly as specified
+- **Maximum 1,000 rows** — larger imports should be split into multiple files
+- **No duplicate track+territory combinations** — each track can only be licensed once per territory in a single batch
+
+<Accordion title="Common Mistakes">
+
+**Wrong CSV encoding**
+Save files as UTF-8. Excel on Windows sometimes saves as Windows-1252, which can corrupt special characters in notes.
+
+**Exceeding the rate limit**
+The bulk endpoint allows 5 requests per minute. If you have more than 5,000 licenses (5 files x 1,000 rows), space your uploads at least 12 seconds apart.
+
+**Multiple territories without quotes**
+When a row has multiple territories, wrap the territory field in quotes: `"GB,US,DE"`. Without quotes, the CSV parser interprets commas as column separators.
+
+**Not checking batch status**
+The `202 Accepted` response does not mean all licenses were created. Always poll the batch status to confirm completion and check for per-row errors.
+
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore all 14 endpoints with the interactive playground.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
+    Subscribe to batch processing events for real-time progress updates.
+  </Card>
+</CardGroup>

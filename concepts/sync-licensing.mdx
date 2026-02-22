@@ -1,0 +1,107 @@
+---
+title: "What is Sync Licensing"
+description: "How synchronisation licensing works in film, TV, and advertising — from traditional manual processes to ProtoForge automation"
+---
+
+# What is Sync Licensing
+
+**Synchronisation licensing** (sync licensing) is the process of obtaining legal permission to use a piece of music alongside visual media — film, television, advertising, video games, and digital content.
+
+When you hear a track in a film trailer, a TV commercial, or a video game cutscene, someone negotiated a sync license to make that happen.
+
+## How Traditional Sync Licensing Works
+
+The traditional sync licensing process involves multiple parties, manual negotiation, and significant time:
+
+### 1. Discovery
+
+A music supervisor searches for the right track. This often means browsing multiple music libraries, contacting publishers, and listening to hundreds of tracks across fragmented catalogues.
+
+### 2. Rights Identification
+
+Once a track is selected, the supervisor must identify every rights holder:
+
+- **Writers** — Who wrote the composition (melody and lyrics)?
+- **Publishers** — Who controls the publishing rights?
+- **Performers** — Who performed on the master recording?
+
+Each party may have a different share of the revenue, and shares must total exactly 100%.
+
+### 3. Negotiation
+
+The supervisor negotiates terms with each rights holder individually:
+
+- **Usage type** — How will the music be used? (Film, TV, advertising, digital, gaming)
+- **Territory** — Where will the content be distributed? (UK only, worldwide, specific regions)
+- **Duration** — How long will the license last? (6 months, 2 years, perpetuity)
+- **Exclusivity** — Can others license the same track for similar use?
+- **Fee** — How much will each party be paid?
+
+### 4. Contract Drafting
+
+A legal team drafts the sync license agreement, incorporating the negotiated terms with appropriate legal clauses. Each clause must be reviewed for accuracy and compliance.
+
+### 5. Signature Collection
+
+All parties must sign the agreement — often via email, courier, or wet ink signatures across different time zones.
+
+## The Problem
+
+This process typically takes **2-6 weeks** per sync license. For productions with tight deadlines or multiple tracks, the delays can be costly:
+
+| Pain Point | Impact |
+|------------|--------|
+| Fragmented catalogues | Hours spent searching across multiple platforms |
+| Manual rights lookup | Days waiting for publisher responses |
+| Individual negotiation | Weeks of back-and-forth with each party |
+| Legal drafting | Expensive legal review for every agreement |
+| Signature collection | Days waiting for all parties to sign |
+
+## How ProtoForge Automates Sync Licensing
+
+ProtoForge replaces each manual step with an API call:
+
+| Traditional Step | ProtoForge Equivalent | Time |
+|-----------------|----------------------|------|
+| Search catalogues | `GET /v1/tracks/search` — filter by BPM, genre, mood, territory | Seconds |
+| Identify rights holders | Rights metadata included in every track response | Instant |
+| Negotiate terms | `POST /v1/licenses` — specify usage, territory, duration | Seconds |
+| Draft contract | `POST /v1/contracts` — deterministic assembly from pre-approved clauses | < 2 seconds |
+| Collect signatures | Integrated e-signature workflow | Hours (not weeks) |
+
+**Total time: Under 10 seconds** for search through contract generation (excluding signature collection, which depends on signers).
+
+### Key Differentiators
+
+- **Single catalogue** — All tracks searchable through one API with consistent metadata
+- **Pre-validated rights** — Every track has verified rights holders with shares summing to 100%
+- **Deterministic contracts** — Contracts assembled from 146 pre-approved legal clauses (no AI-generated legal text)
+- **Real-time webhooks** — Instant notifications when licenses are approved, contracts signed, or payments confirmed
+
+## Who Benefits
+
+<CardGroup cols={2}>
+  <Card title="Music Supervisors" icon="music">
+    Find and license tracks in minutes instead of weeks. Focus on creative decisions, not administrative overhead.
+  </Card>
+  <Card title="Publishers" icon="building">
+    Automated rights validation ensures accurate metadata and fair revenue splits across every license.
+  </Card>
+  <Card title="Production Companies" icon="film">
+    Meet tight deadlines with instant licensing. No more production delays waiting for clearance.
+  </Card>
+  <Card title="Developers" icon="code">
+    Build music licensing into any platform with a REST API. Search, license, and contract — all programmatic.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Rights Metadata" icon="scale-balanced" href="/concepts/rights-metadata">
+    Understand ISRC codes, rights holders, and the 100% split rule.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    License your first track in 5 minutes with the API.
+  </Card>
+</CardGroup>

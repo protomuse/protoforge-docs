@@ -1,0 +1,83 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "ProtoForge",
+  "description": "Sync licensing automation API — license music tracks for film, TV, advertising, and digital content in seconds",
+  "theme": "mint",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["introduction", "quickstart", "changelog"]
+          },
+          {
+            "group": "Integration Guides",
+            "pages": [
+              "guides/authentication",
+              "guides/searching-catalogue",
+              "guides/creating-licenses",
+              "guides/managing-rights",
+              "guides/webhooks",
+              "guides/bulk-operations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api-reference/introduction"]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "Official SDKs",
+            "pages": ["sdks/typescript", "sdks/python"]
+          }
+        ]
+      },
+      {
+        "tab": "Concepts",
+        "groups": [
+          {
+            "group": "Platform Concepts",
+            "pages": [
+              "concepts/sync-licensing",
+              "concepts/rights-metadata",
+              "concepts/contract-templates",
+              "concepts/multi-tenancy"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "api": {
+    "openapi": "api-reference/openapi.yaml",
+    "playground": {
+      "mode": "simple"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/protomuse"
+    }
+  }
+}

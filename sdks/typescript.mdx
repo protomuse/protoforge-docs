@@ -1,0 +1,254 @@
+---
+title: "ProtoForge TypeScript SDK"
+description: "Install, configure, and use the official TypeScript SDK for track search, license creation, and webhook handling"
+---
+
+# ProtoForge TypeScript SDK
+
+The official TypeScript SDK provides a typed client for the ProtoForge API with built-in error handling, pagination helpers, and TypeScript definitions for all request and response types.
+
+## Installation
+
+```bash
+npm install @protoforge/sdk
+```
+
+## Quick Start
+
+```typescript
+import { ProtoForge } from "@protoforge/sdk";
+
+const pf = new ProtoForge({
+  apiKey: process.env.PROTOFORGE_API_KEY!, // pk_test_... or pk_live_...
+});
+
+// Search for tracks
+const tracks = await pf.tracks.search({
+  genre: "electronic",
+  bpm_min: 120,
+  bpm_max: 140,
+  territory: "GB",
+});
+
+console.log(`Found ${tracks.pagination.total} tracks`);
+console.log(tracks.data[0].title); // "Neon Pulse"
+```
+
+## Common Operations
+
+### Search Tracks
+
+<CodeGroup>
+```typescript SDK
+const tracks = await pf.tracks.search({
+  genre: "cinematic",
+  mood: "dramatic",
+  territory: "US",
+  per_page: 50,
+});
+
+for (const track of tracks.data) {
+  console.log(`${track.title} (${track.bpm} BPM) — ${track.status}`);
+}
+```
+
+```typescript fetch
+const response = await fetch(
+  "https://api.protoforge.com/v1/tracks/search?genre=cinematic&mood=dramatic&territory=US&per_page=50",
+  { headers: { "Authorization": "Bearer pk_test_your_api_key" } }
+);
+const tracks = await response.json();
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "trk_def456",
+      "title": "Cinematic Horizons",
+      "bpm": 90,
+      "genre": "cinematic",
+      "mood": ["dramatic", "inspiring"],
+      "status": "available"
+    }
+  ],
+  "pagination": { "page": 1, "per_page": 50, "total": 23 }
+}
+```
+
+### Create a License
+
+<CodeGroup>
+```typescript SDK
+const license = await pf.licenses.create({
+  track_id: "trk_def456",
+  usage_type: "film",
+  territory: ["US", "GB"],
+  duration_months: 24,
+  exclusive: false,
+  notes: "Documentary background music",
+});
+
+console.log(`License ${license.id} — status: ${license.status}`);
+```
+
+```typescript fetch
+const response = await fetch("https://api.protoforge.com/v1/licenses", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    track_id: "trk_def456",
+    usage_type: "film",
+    territory: ["US", "GB"],
+    duration_months: 24,
+    exclusive: false,
+  }),
+});
+const license = await response.json();
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "id": "lic_xyz789",
+  "track_id": "trk_def456",
+  "usage_type": "film",
+  "territory": ["US", "GB"],
+  "duration_months": 24,
+  "status": "draft",
+  "created_at": "2026-02-22T14:00:00Z",
+  "expires_at": "2028-02-22T14:00:00Z"
+}
+```
+
+### List Licenses
+
+<CodeGroup>
+```typescript SDK
+const licenses = await pf.licenses.list({
+  status: "active",
+  per_page: 100,
+});
+
+console.log(`${licenses.pagination.total} active licenses`);
+```
+
+```typescript fetch
+const response = await fetch(
+  "https://api.protoforge.com/v1/licenses?status=active&per_page=100",
+  { headers: { "Authorization": "Bearer pk_test_your_api_key" } }
+);
+const licenses = await response.json();
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "data": [
+    { "id": "lic_xyz789", "track_id": "trk_def456", "status": "active" }
+  ],
+  "pagination": { "page": 1, "per_page": 100, "total": 1 }
+}
+```
+
+### Create a Webhook
+
+<CodeGroup>
+```typescript SDK
+const webhook = await pf.webhooks.create({
+  url: "https://your-app.com/webhooks/protoforge",
+  events: ["license.created", "contract.signed"],
+});
+
+console.log(`Webhook ${webhook.id} active`);
+```
+
+```typescript fetch
+const response = await fetch("https://api.protoforge.com/v1/webhooks", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    url: "https://your-app.com/webhooks/protoforge",
+    events: ["license.created", "contract.signed"],
+  }),
+});
+const webhook = await response.json();
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "id": "whk_abc123",
+  "url": "https://your-app.com/webhooks/protoforge",
+  "events": ["license.created", "contract.signed"],
+  "active": true
+}
+```
+
+## Error Handling
+
+The SDK throws typed errors for API failures:
+
+```typescript
+import { ProtoForgeError } from "@protoforge/sdk";
+
+try {
+  const license = await pf.licenses.create({
+    track_id: "trk_invalid",
+    usage_type: "film",
+    territory: ["GB"],
+    duration_months: 12,
+  });
+} catch (error) {
+  if (error instanceof ProtoForgeError) {
+    console.error(`${error.code}: ${error.message}`);
+    // "not_found: Track trk_invalid does not exist"
+
+    if (error.details) {
+      for (const detail of error.details) {
+        console.error(`  ${detail.field}: ${detail.issue}`);
+      }
+    }
+  }
+}
+```
+
+## Configuration
+
+```typescript
+const pf = new ProtoForge({
+  apiKey: "pk_test_...",
+  baseUrl: "https://api.protoforge.com/v1", // default
+  timeout: 30000, // request timeout in ms (default: 30s)
+  retries: 2, // auto-retry on 429/5xx (default: 2)
+});
+```
+
+## API Reference
+
+For full endpoint documentation, see the [API Reference](/api-reference/introduction).
+
+| SDK Method | API Endpoint |
+|-----------|-------------|
+| `pf.tracks.search()` | [GET /v1/tracks/search](/api-reference/endpoint/searchTracks) |
+| `pf.tracks.get(id)` | [GET /v1/tracks/{id}](/api-reference/endpoint/getTrack) |
+| `pf.licenses.create()` | [POST /v1/licenses](/api-reference/endpoint/createLicense) |
+| `pf.licenses.get(id)` | [GET /v1/licenses/{id}](/api-reference/endpoint/getLicense) |
+| `pf.licenses.list()` | [GET /v1/licenses](/api-reference/endpoint/listLicenses) |
+| `pf.contracts.generate()` | [POST /v1/contracts](/api-reference/endpoint/generateContract) |
+| `pf.webhooks.create()` | [POST /v1/webhooks](/api-reference/endpoint/createWebhook) |

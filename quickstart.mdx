@@ -1,0 +1,293 @@
+---
+title: "License a Track in 5 Minutes"
+description: "Step-by-step guide to authenticate, search the catalogue, create a license, and verify the webhook — all using test API keys"
+---
+
+# License a Track in 5 Minutes
+
+This quickstart walks you through the complete ProtoForge licensing flow using test API keys. By the end, you will have searched the track catalogue, created a sync license, and verified webhook delivery.
+
+<Snippet file="snippets/test-mode.mdx" />
+
+<Steps>
+
+### Get Your API Key
+
+Sign up at [app.protoforge.com](https://app.protoforge.com) and navigate to **Settings > API Keys**. Copy your test key — it starts with `pk_test_`.
+
+Your test key is org-scoped, meaning all resources you create are isolated to your organisation.
+
+### Search the Track Catalogue
+
+Use the search endpoint to find tracks matching your production needs. You can filter by BPM, key, genre, mood, and territory.
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch(
+  "https://api.protoforge.com/v1/tracks/search?genre=electronic&bpm_min=120&bpm_max=140&territory=GB",
+  {
+    headers: {
+      "Authorization": "Bearer pk_test_your_api_key",
+      "Content-Type": "application/json"
+    }
+  }
+);
+
+const data = await response.json();
+console.log(data);
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/tracks/search?genre=electronic&bpm_min=120&bpm_max=140&territory=GB" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.protoforge.com/v1/tracks/search",
+    params={
+        "genre": "electronic",
+        "bpm_min": 120,
+        "bpm_max": 140,
+        "territory": "GB"
+    },
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    }
+)
+
+data = response.json()
+print(data)
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "trk_abc123",
+      "title": "Neon Pulse",
+      "artist": "Synthwave Collective",
+      "duration_seconds": 214,
+      "bpm": 128,
+      "key": "A minor",
+      "genre": "electronic",
+      "mood": ["energetic", "uplifting"],
+      "isrc": "GB-ABC-24-00001",
+      "rights_holders": [
+        { "name": "Alex Morgan", "role": "writer", "share_percentage": 50 },
+        { "name": "Neon Music Publishing", "role": "publisher", "share_percentage": 50 }
+      ],
+      "available_territories": ["GB", "US", "DE", "FR"],
+      "status": "available"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 1
+  }
+}
+```
+
+### Select a Track
+
+From the search results, pick a track and note its `id`. You will use this to create the license.
+
+In the example above, the track `trk_abc123` ("Neon Pulse") is available in GB with rights holders whose shares sum to exactly 100%.
+
+<Callout type="info" title="Rights Validation">
+  ProtoForge validates that rights holder shares sum to exactly 100% for every track. Tracks with incomplete rights metadata have status `restricted` and cannot be licensed.
+</Callout>
+
+### Create a License
+
+Create a sync license by specifying the track, usage type, territory, and duration.
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch("https://api.protoforge.com/v1/licenses", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    track_id: "trk_abc123",
+    usage_type: "film",
+    territory: ["GB"],
+    duration_months: 24,
+    exclusive: false,
+    notes: "Background music for independent short film"
+  })
+});
+
+const license = await response.json();
+console.log(license);
+```
+
+```bash cURL
+curl -X POST "https://api.protoforge.com/v1/licenses" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "track_id": "trk_abc123",
+    "usage_type": "film",
+    "territory": ["GB"],
+    "duration_months": 24,
+    "exclusive": false,
+    "notes": "Background music for independent short film"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.protoforge.com/v1/licenses",
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    },
+    json={
+        "track_id": "trk_abc123",
+        "usage_type": "film",
+        "territory": ["GB"],
+        "duration_months": 24,
+        "exclusive": False,
+        "notes": "Background music for independent short film"
+    }
+)
+
+license = response.json()
+print(license)
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "id": "lic_xyz789",
+  "track_id": "trk_abc123",
+  "organisation_id": "org_your_org",
+  "usage_type": "film",
+  "territory": ["GB"],
+  "duration_months": 24,
+  "exclusive": false,
+  "status": "draft",
+  "created_at": "2026-02-22T10:30:00Z",
+  "expires_at": "2028-02-22T10:30:00Z",
+  "contract_id": null
+}
+```
+
+### Verify Webhook Delivery
+
+ProtoForge sends webhook events when license state changes. To receive events, register a webhook endpoint:
+
+<CodeGroup>
+```typescript TypeScript
+const response = await fetch("https://api.protoforge.com/v1/webhooks", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer pk_test_your_api_key",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    url: "https://your-app.com/webhooks/protoforge",
+    events: ["license.created", "license.approved", "contract.signed"]
+  })
+});
+
+const webhook = await response.json();
+console.log(webhook);
+```
+
+```bash cURL
+curl -X POST "https://api.protoforge.com/v1/webhooks" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-app.com/webhooks/protoforge",
+    "events": ["license.created", "license.approved", "contract.signed"]
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.protoforge.com/v1/webhooks",
+    headers={
+        "Authorization": "Bearer pk_test_your_api_key",
+        "Content-Type": "application/json"
+    },
+    json={
+        "url": "https://your-app.com/webhooks/protoforge",
+        "events": ["license.created", "license.approved", "contract.signed"]
+    }
+)
+
+webhook = response.json()
+print(webhook)
+```
+</CodeGroup>
+
+**Response:**
+
+```json
+{
+  "id": "whk_def456",
+  "url": "https://your-app.com/webhooks/protoforge",
+  "events": ["license.created", "license.approved", "contract.signed"],
+  "active": true,
+  "created_at": "2026-02-22T10:31:00Z"
+}
+```
+
+When the license you created in Step 4 is approved, ProtoForge sends a `license.approved` event to your webhook URL:
+
+```json
+{
+  "id": "evt_ghi012",
+  "type": "license.approved",
+  "created_at": "2026-02-22T10:35:00Z",
+  "data": {
+    "license_id": "lic_xyz789",
+    "approved_by": "admin@your-org.com"
+  }
+}
+```
+
+</Steps>
+
+## What You Built
+
+In 5 steps, you completed the entire ProtoForge licensing pipeline:
+
+1. Authenticated with a test API key
+2. Searched tracks by genre, BPM, and territory
+3. Selected a track with validated rights metadata
+4. Created a sync license with usage type and territory
+5. Registered a webhook to monitor license events
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Authentication" icon="key" href="/guides/authentication">
+    Deep dive into test vs live keys, org-scoping, and security best practices.
+  </Card>
+  <Card title="Search Filters" icon="magnifying-glass" href="/guides/searching-catalogue">
+    Advanced filtering by BPM range, musical key, mood, and territory availability.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore all 14 endpoints with the interactive playground.
+  </Card>
+</CardGroup>
