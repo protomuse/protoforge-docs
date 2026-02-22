@@ -75,6 +75,11 @@
       "mode": "simple"
     }
   },
+  "seo": {
+    "metatags": {
+      "robots": "noindex, nofollow, noarchive, nosnippet, noimageindex"
+    }
+  },
   "footer": {
     "socials": {
       "github": "https://github.com/protomuse"
