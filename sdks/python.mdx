@@ -54,6 +54,11 @@ response = requests.get(
 )
 tracks = response.json()
 ```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/tracks/search?genre=cinematic&mood=dramatic&territory=US&per_page=50" \
+  -H "Authorization: Bearer pk_test_your_api_key"
+```
 </CodeGroup>
 
 **Response:**
@@ -108,6 +113,13 @@ response = requests.post(
 )
 license = response.json()
 ```
+
+```bash cURL
+curl -X POST "https://api.protoforge.com/v1/licenses" \
+  -H "Authorization: Bearer pk_test_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"track_id":"trk_def456","usage_type":"film","territory":["US","GB"],"duration_months":24,"exclusive":false}'
+```
 </CodeGroup>
 
 **Response:**
@@ -140,6 +152,11 @@ response = requests.get(
     headers={"Authorization": "Bearer pk_test_your_api_key"},
 )
 licenses = response.json()
+```
+
+```bash cURL
+curl -X GET "https://api.protoforge.com/v1/licenses?status=active&per_page=100" \
+  -H "Authorization: Bearer pk_test_your_api_key"
 ```
 </CodeGroup>
 

@@ -1,121 +1,217 @@
 ---
 name: protoforge-api
-description: >
-  Search music tracks, create sync licenses, generate contracts, and manage
-  webhooks via the ProtoForge API. Use when building music licensing integrations
-  for film, TV, advertising, or digital content.
+description: ProtoForge sync licensing API — search tracks, create licenses, generate contracts, manage templates and webhooks programmatically
 license: MIT
-compatibility: Claude Code, Cursor, Windsurf, and other AI coding assistants
+compatibility:
+  - Claude Code
+  - Cursor
+  - Windsurf
 metadata:
-  author: protomuse
   version: "1.0"
+  base_url: https://api.protoforge.com/v1
+  auth_type: Bearer token
+  docs_url: https://docs.protoforge.app
+  category: music-rights
+  tags:
+    - sync-licensing
+    - music-rights
+    - contracts
+    - api
 ---
 
 # ProtoForge API Skill
 
+ProtoForge automates sync licensing — the process of licensing music for use in film, TV, advertising, and digital content. This skill covers the REST API for searching tracks, creating licenses, generating contracts, managing templates, and handling webhooks.
+
 ## Authentication
 
-All requests require a Bearer token in the `Authorization` header:
+All requests require a Bearer token in the Authorization header.
 
-```
+```http
 Authorization: Bearer pk_test_your_api_key
 ```
 
-- **Test keys** (`pk_test_*`) — sandbox environment, sample data, no real licenses
-- **Live keys** (`pk_live_*`) — production, real catalogue, binding licenses
-- Keys are org-scoped — all resources belong to the authenticated organisation
+**Key prefixes:**
+- `pk_test_` — Test mode. No real contracts created. Isolated from production data.
+- `pk_live_` — Production mode. Creates real contracts and triggers signature flows.
 
-## API Capabilities
+Keys are org-scoped. A key for Organization A cannot access Organization B's data.
 
-Base URL: `https://api.protoforge.com/v1`
+Get API keys from **Settings > API Keys** in the ProtoForge dashboard.
 
-| Endpoint | Method | Description | Rate Limit |
-|----------|--------|-------------|------------|
-| `/v1/tracks/search` | GET | Search tracks by BPM, key, genre, mood, territory, availability | 100/min |
-| `/v1/tracks/{id}` | GET | Get full track details with rights metadata | 100/min |
-| `/v1/licenses` | POST | Create a sync license (track_id, usage_type, territory, duration_months required) | 30/min |
-| `/v1/licenses/{id}` | GET | Get license details and status | 100/min |
-| `/v1/licenses` | GET | List licenses with filtering (status, track_id) and pagination | 100/min |
-| `/v1/contracts` | POST | Generate contract from license + template (license_id, template_id required) | 20/min |
-| `/v1/contracts/{id}` | GET | Get contract with PDF URL and signature status | 100/min |
-| `/v1/templates` | GET | List available contract templates | 100/min |
-| `/v1/templates` | POST | Create Handlebars template with token schema (name, body, token_schema required) | 30/min |
-| `/v1/templates/{id}` | GET | Get template details and token schema | 100/min |
-| `/v1/webhooks` | POST | Subscribe to events (url, events required) | 30/min |
-| `/v1/webhooks` | GET | List active webhook subscriptions | 100/min |
-| `/v1/webhooks/{id}` | DELETE | Remove a webhook subscription | 30/min |
-| `/v1/bulk/licenses` | POST | Upload CSV for batch license creation (multipart/form-data) | 5/min |
+## API Endpoints
+
+| Method | Path | Description | Rate Limit |
+|--------|------|-------------|------------|
+| GET | `/v1/tracks/search` | Search tracks by keyword, BPM, key, genre, mood, territory | 100/min |
+| GET | `/v1/tracks/{id}` | Get a single track with full rights metadata | 100/min |
+| POST | `/v1/licenses` | Create a new sync license | 30/min |
+| GET | `/v1/licenses` | List licenses with filtering and pagination | 100/min |
+| GET | `/v1/licenses/{id}` | Get a single license by ID | 100/min |
+| POST | `/v1/contracts` | Generate a contract from a license and template | 20/min |
+| GET | `/v1/contracts/{id}` | Get a contract with status, PDF URL, confidence score | 100/min |
+| GET | `/v1/templates` | List available contract templates | 100/min |
+| POST | `/v1/templates` | Create a new contract template | 30/min |
+| GET | `/v1/templates/{id}` | Get a template with Handlebars body and token schema | 100/min |
+| POST | `/v1/webhooks` | Create a webhook subscription | 30/min |
+| GET | `/v1/webhooks` | List registered webhooks | 100/min |
+| DELETE | `/v1/webhooks/{id}` | Delete a webhook subscription | 30/min |
+| POST | `/v1/bulk/licenses` | Bulk create licenses via CSV upload | 5/min |
 
 ## Common Agent Mistakes
 
-1. **Wrong auth header format** — Use `Authorization: Bearer pk_test_...`, not `Authorization: pk_test_...` or `X-API-Key: ...`
-2. **Missing required fields on POST /v1/licenses** — All four required: `track_id`, `usage_type`, `territory` (array), `duration_months` (integer 1-120)
-3. **Territory as string instead of array** — `territory` must be `["GB"]` not `"GB"`
-4. **Invalid usage_type enum** — Must be exactly one of: `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media`
-5. **Not paginating search results** — Default `per_page` is 20, max 100. Check `pagination.total`.
-6. **Using wrong ISRC format** — ISRC format is `CC-XXX-YY-NNNNN` (with hyphens)
-7. **Forgetting Content-Type header** — POST requests need `Content-Type: application/json`
+### 1. Wrong authentication format
+
+```http
+# WRONG — missing "Bearer" prefix
+Authorization: pk_test_abc123
+
+# CORRECT
+Authorization: Bearer pk_test_abc123
+```
+
+### 2. Missing required fields on license creation
+
+The `POST /v1/licenses` endpoint requires all of these fields:
+
+- `track_id` (string) — The track to license
+- `usage_type` (string) — One of: `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media`
+- `territory` (array of strings) — ISO 3166-1 alpha-2 territory codes
+- `duration_months` (integer) — License duration in months (1-120)
+
+Optional fields: `exclusive` (boolean, default false), `notes` (string, max 1000 chars).
+
+### 3. Wrong enum values
+
+Status filters use snake_case enum values:
+
+```text
+# WRONG
+?status=PendingSignature
+?status=pending-signature
+
+# CORRECT
+?status=draft
+?status=active
+?status=expired
+?status=revoked
+```
+
+Valid license statuses: `draft`, `active`, `expired`, `revoked`.
+
+Valid usage types: `film`, `tv`, `advertising`, `digital`, `gaming`, `social_media`.
+
+### 4. Not paginating results
+
+List endpoints return a maximum of 100 items per page. Always check pagination and request additional pages if needed.
+
+```json
+{
+  "pagination": {
+    "page": 1,
+    "per_page": 25,
+    "total": 250
+  }
+}
+```
+
+Use `?page=2&per_page=25` to fetch the next page.
+
+### 5. Confusing licenses and contracts
+
+Licenses and contracts are separate resources. Create a license first (`POST /v1/licenses`), then generate a contract from it (`POST /v1/contracts` with `license_id` and `template_id`).
 
 ## Dashboard vs API
 
-| Action | API | Dashboard |
-|--------|-----|-----------|
-| Search tracks | `GET /v1/tracks/search` | Visual search |
-| Create license | `POST /v1/licenses` | Wizard flow |
-| Generate contract | `POST /v1/contracts` | One-click |
-| Manage API keys | — | Settings > API Keys |
-| Invite team members | — | Settings > Team |
-| View audit trail | — | Audit dashboard |
-| Configure billing | — | Settings > Billing |
+Some operations are only available in the dashboard UI:
+
+| Operation | Dashboard | API |
+|-----------|-----------|-----|
+| Search tracks | Yes | Yes |
+| Create licenses | Yes | Yes |
+| Generate contracts | Yes | Yes |
+| Manage templates | Yes | Yes |
+| Manage webhooks | Yes | Yes |
+| Bulk license import | Yes | Yes |
+| Manage API keys | Yes | No |
+| Configure org settings | Yes | No |
+| Manage user roles | Yes | No |
 
 ## Rate Limits
 
-| Category | Limit | Applies To |
+Rate limits are enforced per API key:
+
+| Category | Limit | Applies to |
 |----------|-------|-----------|
-| Search | 100/min | Track search and retrieval |
-| License | 30/min | License creation |
-| Contract | 20/min | Contract generation |
-| Bulk | 5/min | CSV batch upload |
+| Search & read | 100 requests/min | All GET endpoints |
+| Write | 30 requests/min | POST/PUT for licenses, templates, webhooks |
+| Contract generation | 20 requests/min | POST /v1/contracts |
+| Bulk operations | 5 requests/min | POST /v1/bulk/licenses |
 
-Rate limit headers in every response: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+Rate limit headers are included in every response:
 
-## Quick Example: Search, License, Verify
+- `X-RateLimit-Limit` — Maximum requests allowed in the window
+- `X-RateLimit-Remaining` — Requests remaining in the current window
+- `X-RateLimit-Reset` — Unix timestamp when the window resets
 
-```bash
-# 1. Search for electronic tracks available in GB
-curl -s "https://api.protoforge.com/v1/tracks/search?genre=electronic&territory=GB" \
-  -H "Authorization: Bearer pk_test_your_api_key" | jq '.data[0].id'
-# Returns: "trk_abc123"
+When rate limited, the API returns HTTP 429 with the `rate_limited` error code.
 
-# 2. Create a license
-curl -s -X POST "https://api.protoforge.com/v1/licenses" \
-  -H "Authorization: Bearer pk_test_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{"track_id":"trk_abc123","usage_type":"film","territory":["GB"],"duration_months":12}' | jq '.id'
-# Returns: "lic_xyz789"
+## Quick Example: Search, License, Contract
 
-# 3. Check license status
-curl -s "https://api.protoforge.com/v1/licenses/lic_xyz789" \
-  -H "Authorization: Bearer pk_test_your_api_key" | jq '.status'
-# Returns: "draft"
+A typical agent workflow: find a track, create a license, and generate a contract.
+
+```typescript
+import { ProtoForge } from "@protoforge/sdk";
+
+const pf = new ProtoForge({ apiKey: "pk_test_your_api_key" });
+
+// Step 1: Search for a track
+const results = await pf.tracks.search({ query: "sunset boulevard" });
+const track = results.data[0];
+
+// Step 2: Create a license
+const license = await pf.licenses.create({
+  track_id: track.id,
+  usage_type: "film",
+  territory: ["US", "GB"],
+  duration_months: 24,
+  exclusive: false,
+  notes: "Feature film theatrical release",
+});
+
+// Step 3: Generate a contract from the license
+const contract = await pf.contracts.generate({
+  license_id: license.id,
+  template_id: "tmpl_sync_standard_v1",
+});
+
+console.log(contract.status); // "draft"
+console.log(contract.confidence_score); // 95
 ```
 
-## Error Format
+## Error Response Format
 
-All errors return:
+All errors follow this structure:
 
 ```json
 {
   "error": {
     "code": "validation_error",
-    "message": "Human-readable description",
-    "details": [{ "field": "territory", "issue": "Invalid ISO 3166-1 code: UK" }]
+    "message": "Rights splits must sum to 100%",
+    "details": [
+      { "field": "splits", "issue": "Sum is 95%, expected 100%" }
+    ]
   }
 }
 ```
 
-Error codes: `bad_request`, `unauthorized`, `forbidden`, `not_found`, `conflict`, `validation_error`, `rate_limited`, `internal_error`
-
-## Webhook Events
-
-Subscribe to: `license.created`, `license.approved`, `license.expired`, `contract.generated`, `contract.signed`, `payment.confirmed`, `payment.failed`
+| HTTP Code | Error Code | Description |
+|-----------|-----------|-------------|
+| 400 | `bad_request` | Malformed request body or invalid parameters |
+| 401 | `unauthorized` | Missing or invalid API key |
+| 403 | `forbidden` | Valid key but insufficient permissions |
+| 404 | `not_found` | Resource does not exist or is not in your organization |
+| 409 | `conflict` | Resource state conflict (e.g., contract already signed) |
+| 422 | `validation_error` | Request understood but failed validation rules |
+| 429 | `rate_limited` | Too many requests |
+| 500 | `internal_error` | Server error — retry with exponential backoff |
