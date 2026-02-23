@@ -1,0 +1,97 @@
+---
+title: "Sending for Signature"
+description: "Send contracts to signers via DocuSeal, track signature status, and handle the completed signing flow"
+---
+
+After generating a contract, you can send it to all parties for electronic signature directly from the ProtoForge dashboard. Signatures are handled through DocuSeal, a secure e-signature platform integrated into ProtoForge.
+
+## Sending a contract
+
+<Steps>
+  <Step title="Open the generated contract">
+    From the **Contracts** page, click on the contract you want to send. You'll see the contract detail page with the generated PDF and a summary of parties, clauses, and terms.
+  </Step>
+
+  <Step title="Click Send for Signature">
+    Click the **Send for Signature** button. ProtoForge displays a confirmation dialog showing each party who will receive a signing request, along with their email address and role in the contract.
+
+    Verify that the signer list is correct. Each party listed will receive an individual email with a unique signing link.
+  </Step>
+
+  <Step title="Confirm and send">
+    Click **Confirm** to dispatch the signing requests. ProtoForge routes the contract to DocuSeal, which sends an email to each party with their personalized signing link.
+
+    The contract status changes to **Pending Signatures** on the dashboard.
+  </Step>
+</Steps>
+
+## Tracking signature status
+
+Once a contract is sent, the **Contracts** page shows its current status:
+
+| Status | Meaning |
+|--------|---------|
+| **Draft** | Contract has been generated but not yet sent for signature |
+| **Pending Signatures** | Sent to signers; waiting for one or more parties to sign |
+| **Partially Signed** | At least one party has signed, but others are still pending |
+| **Fully Executed** | All parties have signed; the contract is complete |
+| **Expired** | The signing link has expired (links are valid for 7 days) |
+
+On the contract detail page, you can see which specific parties have signed and which are still pending, along with timestamps for each signing event.
+
+## The signing experience
+
+From the signer's perspective, the process is straightforward:
+
+1. They receive an email from ProtoForge with a link to review the contract
+2. They click the link and open the contract in their browser — no account or software required
+3. They review the full contract, including all clauses and terms
+4. They sign electronically by drawing or typing their signature
+5. They receive a confirmation that their signature has been recorded
+
+<Callout type="info">
+  Signers do not need a ProtoForge account. The signing experience is designed for people who may be encountering ProtoForge for the first time. For a detailed guide from the signer's perspective, see [For Composers: Signing](/composers/signing).
+</Callout>
+
+## Completion
+
+When the last party signs:
+
+- The contract status updates to **Fully Executed**
+- All parties receive an email with a PDF copy of the fully executed contract
+- The signing events are recorded in the [Audit Trail](/publishers/audit-trail) with timestamps and hash-chain verification
+- The executed PDF is stored in ProtoForge and available for download from the contract detail page
+
+## Resending and reminders
+
+If a signer hasn't responded, you can:
+
+- **Resend the signing email** from the contract detail page by clicking **Resend** next to the pending signer's name
+- View when the original email was sent and whether it was opened
+
+<Callout type="warning">
+  Signing links expire after 7 days for security. If a link expires, you can resend a new link from the contract detail page. The original contract is not affected.
+</Callout>
+
+## Automated workflows
+
+For teams that need to integrate the signing flow into their own systems, ProtoForge provides webhook events that fire when signature events occur. Common events include:
+
+- `contract.generated` — A contract was generated and sent for signature
+- `contract.signed` — A party signed the contract
+- `payment.confirmed` — Payment has been confirmed for the contract
+
+<Callout type="info">
+  Webhook configuration and event payloads are covered in the [API Reference](/api-reference/introduction). No API knowledge is needed to use the dashboard signing flow described on this page.
+</Callout>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Audit Trail & Compliance" icon="shield-check" href="/publishers/audit-trail">
+    See how signing events are recorded in the tamper-proof audit trail.
+  </Card>
+  <Card title="Bulk Licensing via CSV" icon="table" href="/publishers/bulk-operations">
+    Send multiple licensing deals at once using CSV upload.
+  </Card>
+</CardGroup>

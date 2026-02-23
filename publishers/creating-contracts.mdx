@@ -1,0 +1,113 @@
+---
+title: "Creating a Contract"
+description: "Use the 6-step contract wizard to select clauses, assign tokens, preview, and generate a deterministic sync licensing contract"
+---
+
+The contract wizard is the core workflow in ProtoForge. It walks you through six steps to assemble a legally complete sync licensing contract from pre-approved clauses. Navigate to **Contracts** in the sidebar and click **New Contract** to begin.
+
+## The 6-step wizard
+
+<Steps>
+  <Step title="Select Work">
+    Choose the musical work this contract covers. The dropdown lists all registered works in your organization. Each entry shows the title, ISRC (if available), and contributor count.
+
+    Only works with valid rights splits (summing to exactly 100%) are selectable. If a work appears grayed out, its splits need to be completed first — see [Managing Rights & Splits](/publishers/rights-splits).
+  </Step>
+
+  <Step title="Select Parties">
+    Choose the parties involved in this deal:
+
+    - **Licensor** — The rights holder granting the sync license (typically the publisher)
+    - **Licensee** — The person or company acquiring the license for their project
+    - **Additional parties** — Co-publishers, administrators, or other entities with a stake in the deal
+
+    Parties must already exist in the Parties section of the dashboard. If someone is missing, you can create a new party record without leaving the wizard.
+  </Step>
+
+  <Step title="Choose Clauses">
+    Browse the clause library and select the clauses that apply to this deal. Clauses are organized into categories:
+
+    | Category | What it covers | Example clauses |
+    |----------|---------------|----------------|
+    | **Grant of Rights** | What rights are being licensed | Sync rights, master use, public performance |
+    | **Financial Terms** | Payment structure | Flat fee, advances, royalty rates, payment schedule |
+    | **Usage Restrictions** | Limits on how the music can be used | Territory limits, media type, duration caps |
+    | **Representations & Warranties** | Legal assurances from each party | Ownership confirmation, authority to sign |
+    | **Delivery Obligations** | What must be provided and when | Master delivery, metadata delivery |
+    | **Termination** | How the agreement can end | Term expiry, breach, mutual termination |
+    | **Governing Law** | Jurisdiction and dispute resolution | Applicable law, arbitration, force majeure |
+    | **Compliance** | Regulatory requirements | GDPR, AI usage, consent provisions |
+
+    ProtoForge automatically checks for conflicts between your selected clauses and flags them with a warning. For example, selecting both an exclusive and non-exclusive grant for the same right will trigger a conflict alert.
+
+    <Callout type="info">
+      All 146 clauses in the library have been reviewed by legal professionals. ProtoForge never generates or modifies legal text — it assembles contracts from this pre-approved library only.
+    </Callout>
+  </Step>
+
+  <Step title="Fill Tokens">
+    Tokens are the variable data fields that get inserted into the contract — things like dates, monetary amounts, territory names, and party-specific details. ProtoForge uses 202 defined token types across 16 categories:
+
+    - **Core Agreement** — Effective date, agreement title, governing law
+    - **Financial** — Fee amount, currency, payment due date, royalty percentage
+    - **Rights** — Licensed rights, exclusivity scope, sublicensing terms
+    - **Restrictions** — Territory codes, media types, duration limits
+    - **Party details** — Names, addresses, IPI numbers (pre-filled from party records)
+
+    Many tokens are pre-filled from the work and party records you selected in earlier steps. You only need to complete the deal-specific values like fees, dates, and territory scope.
+
+    The wizard shows a progress bar indicating how many tokens are filled versus how many are required. All required tokens must be completed before you can proceed to the preview step.
+  </Step>
+
+  <Step title="Preview">
+    Review the fully assembled contract. The preview shows the complete document with all clauses in order and all tokens filled in. Check that:
+
+    - The parties are named correctly
+    - The financial terms match the deal you negotiated
+    - The territory and duration reflect the intended scope
+    - The clause selections cover all the terms you agreed on
+
+    You can go back to any previous step to make changes. The preview updates immediately when you return.
+  </Step>
+
+  <Step title="Generate">
+    Click **Generate Contract** to create the final document. ProtoForge performs a final validation pass — checking that all required tokens are filled, all splits sum to 100%, and no clause conflicts remain — then assembles the contract.
+
+    The generation pipeline completes in under 10 seconds:
+
+    | Stage | Time |
+    |-------|------|
+    | Token validation | under 500ms |
+    | Clause selection | under 1 second |
+    | Contract assembly | under 2 seconds |
+    | PDF generation | under 5 seconds |
+    | **Total** | **under 10 seconds** |
+  </Step>
+</Steps>
+
+## Deterministic assembly
+
+ProtoForge's contract assembly is deterministic: the same inputs always produce the same output. If you select the same work, parties, clauses, and token values, you will get an identical contract every time. This is important for legal audit — you can verify that a contract was generated correctly by re-running the same inputs.
+
+<Callout type="info">
+  The AI assistant can help you select appropriate clauses, explain what each clause means in plain language, and detect conflicts between clauses. It never writes or modifies legal text.
+</Callout>
+
+## After generating
+
+Once the contract is generated, you can:
+
+- **Download the PDF** for offline review or records
+- **Send for signature** to route the contract to all parties via DocuSeal — see [Sending for Signature](/publishers/sending-signatures)
+- **Edit** the contract by returning to the wizard (this creates a new version; the original is preserved in the audit trail)
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Sending for Signature" icon="pen-nib" href="/publishers/sending-signatures">
+    Route your generated contract to all parties for electronic signature.
+  </Card>
+  <Card title="Audit Trail & Compliance" icon="shield-check" href="/publishers/audit-trail">
+    See how every contract action is logged and verified.
+  </Card>
+</CardGroup>

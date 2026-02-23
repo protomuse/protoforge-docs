@@ -1,0 +1,125 @@
+---
+title: "Bulk Licensing via CSV"
+description: "Import multiple licensing deals at once using CSV upload — format specification, validation rules, and error handling"
+---
+
+When you need to license multiple tracks at once — whether for a large sync deal, a catalog migration, or batch renewals — ProtoForge's bulk import feature lets you upload a CSV file to create multiple licensing records in a single operation.
+
+## When to use bulk import
+
+- **Multi-track sync deals** — A music supervisor licenses 20 tracks for a TV series
+- **Catalog migration** — Moving existing licensing data from another system into ProtoForge
+- **Batch renewals** — Renewing multiple expiring licenses with updated terms
+- **Library licensing** — Production music libraries licensing entire catalogs to a single client
+
+## CSV format
+
+Your CSV file must include the following columns:
+
+| Column | Description | Required | Example |
+|--------|-------------|----------|---------|
+| `track_id` | The ISRC or ProtoForge work ID for the track | Yes | `GB-XXX-25-00001` |
+| `usage_type` | How the music will be used | Yes | `sync`, `master_use`, `mechanical` |
+| `territory` | ISO 3166-1 country code or `WW` for worldwide | Yes | `US`, `GB`, `WW` |
+| `duration_months` | License duration in months | Yes | `12`, `24`, `36` |
+| `exclusive` | Whether the license is exclusive | Yes | `true`, `false` |
+| `notes` | Free-text notes for this deal | No | `Season 3, episodes 1-8` |
+
+### Sample CSV
+
+```csv
+track_id,usage_type,territory,duration_months,exclusive,notes
+GB-XXX-25-00001,sync,US,12,false,TV series Season 3
+GB-XXX-25-00002,sync,US,12,false,TV series Season 3
+GB-XXX-25-00003,master_use,WW,24,true,Film trailer worldwide
+US-ABC-24-00010,sync,GB,6,false,UK advertising campaign
+```
+
+<Callout type="tip">
+  You can download a blank CSV template from the bulk import page. The template includes all required columns with example values in the first row.
+</Callout>
+
+## Upload process
+
+<Steps>
+  <Step title="Navigate to Bulk Import">
+    Go to **Contracts** in the sidebar and click **Bulk Import**. The import page opens with instructions and a link to download the CSV template.
+  </Step>
+
+  <Step title="Upload your CSV file">
+    Drag and drop your CSV file into the upload area, or click to browse. ProtoForge accepts `.csv` files up to 10MB.
+  </Step>
+
+  <Step title="Review the validation report">
+    ProtoForge validates every row in your file before processing. The validation report shows:
+
+    - **Total rows** in the file
+    - **Valid rows** that passed all checks
+    - **Invalid rows** with specific error descriptions and line numbers
+
+    You can fix errors and re-upload, or proceed with only the valid rows.
+  </Step>
+
+  <Step title="Confirm and process">
+    Click **Import Valid Rows** to create the licensing records. Each valid row generates a contract draft that you can review, finalize, and send for signature individually or in batches.
+  </Step>
+</Steps>
+
+## Validation rules
+
+ProtoForge checks each row against these rules:
+
+| Check | What is validated |
+|-------|-----------------|
+| **Track exists** | The `track_id` must match an ISRC or work ID in your organization |
+| **Valid usage type** | Must be one of the recognized types: `sync`, `master_use`, `mechanical`, `performance`, `print` |
+| **Valid territory** | Must be a valid ISO 3166-1 alpha-2 code or `WW` for worldwide |
+| **Duration range** | Must be a positive integer (1-120 months) |
+| **Exclusive flag** | Must be `true` or `false` (case-insensitive) |
+| **Rights splits** | The referenced work must have valid splits summing to 100% |
+
+## Error handling
+
+Invalid rows are reported with their line number and a description of the problem:
+
+<Accordion title="Common CSV errors">
+  | Error | Cause | Fix |
+  |-------|-------|-----|
+  | `Track not found: GB-XXX-25-99999` | The ISRC doesn't match any registered work | Check the ISRC or register the work first |
+  | `Invalid usage_type: synch` | Typo or unrecognized usage type | Use one of: `sync`, `master_use`, `mechanical`, `performance`, `print` |
+  | `Invalid territory: UK` | ISO 3166-1 uses `GB` for the United Kingdom, not `UK` | Change to `GB` |
+  | `Duration must be between 1 and 120` | Negative, zero, or very large duration value | Enter a number between 1 and 120 |
+  | `Incomplete rights splits for work` | The referenced work's shares don't total 100% | Fix the splits on the work record first |
+  | `Missing required column: territory` | A required column is missing from the CSV header | Add the missing column to your file |
+</Accordion>
+
+<Accordion title="Encoding and formatting tips">
+  - Save your CSV as **UTF-8** encoding to support international characters in notes
+  - Use commas as delimiters (not semicolons or tabs)
+  - Wrap any field containing commas in double quotes: `"Season 3, episodes 1-8"`
+  - Do not include a trailing comma at the end of each row
+  - The header row is required and must match the column names exactly
+</Accordion>
+
+## Rate limits
+
+Bulk operations are rate-limited to prevent system overload:
+
+- **5 imports per minute** per organization
+- Each import can contain up to **500 rows**
+- For larger imports (over 500 tracks), split your CSV into multiple files and upload them sequentially
+
+<Callout type="info">
+  Bulk import creates contract drafts. Each draft still needs to go through clause selection and review before it can be sent for signature. If your bulk workflow requires full automation, see the [API Reference](/api-reference/introduction) for programmatic contract creation.
+</Callout>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Creating a Contract" icon="file-contract" href="/publishers/creating-contracts">
+    Review and finalize the contract drafts created by your bulk import.
+  </Card>
+  <Card title="Audit Trail & Compliance" icon="shield-check" href="/publishers/audit-trail">
+    All bulk import actions are logged in the audit trail for compliance.
+  </Card>
+</CardGroup>

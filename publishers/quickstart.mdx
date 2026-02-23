@@ -1,0 +1,103 @@
+---
+title: "Your First Contract in 5 Minutes"
+description: "Step-by-step guide to creating and sending your first sync licensing contract using the ProtoForge dashboard"
+---
+
+This guide walks you through the end-to-end process of creating a sync licensing contract and sending it for signature — all from the ProtoForge dashboard. No code required.
+
+<Callout type="info">
+  This walkthrough uses the dashboard UI. For API integration, see the [API Reference](/api-reference/introduction) tab.
+</Callout>
+
+## The full flow
+
+<Steps>
+  <Step title="Log in to your dashboard">
+    Sign in to your ProtoForge account at your organization's dashboard URL. If this is your first time, your organization admin will have sent you an invitation email with a link to set up your credentials.
+  </Step>
+
+  <Step title="Register a work">
+    Navigate to **Works** in the sidebar and click **New Work**. The Work Registration Wizard opens with these steps:
+
+    - **Basic Info** — Enter the track title, ISRC code (if available), genre, duration, and work type
+    - **Contributors** — Add the composer(s), writer(s), and performer(s) with their roles and IPI numbers
+    - **Territories** — Select the geographic regions where this work is available for licensing
+
+    Click **Save** when you're done. You can always edit the work later.
+
+    <Callout type="tip">
+      Don't have an ISRC code yet? You can leave it blank for now and add it later. See [Registering a Work](/publishers/registering-works) for details.
+    </Callout>
+  </Step>
+
+  <Step title="Add parties">
+    Navigate to **Parties** in the sidebar and click **Add Party**. Create records for each person or organization involved in the deal:
+
+    - The **licensor** (the rights holder granting the license — often you, the publisher)
+    - The **licensee** (the person or company licensing the music for their project)
+    - Any **co-publishers** or additional rights holders
+
+    For each party, enter their name, email address, role, and (for rights holders) their IPI number and collection society.
+  </Step>
+
+  <Step title="Create a contract">
+    Navigate to **Contracts** in the sidebar and click **New Contract**. This launches the 6-step contract wizard:
+
+    1. **Select Work** — Choose the work you just registered
+    2. **Select Parties** — Choose the licensor, licensee, and any additional parties
+    3. **Choose Clauses** — Browse by category and select the clauses that apply to this deal
+    4. **Fill Tokens** — Complete the data fields: effective date, fee amounts, territory scope, duration, and other deal terms
+    5. **Preview** — Review the fully assembled contract
+    6. **Generate** — Create the final contract document
+
+    For a detailed walkthrough of each step, see [Creating a Contract](/publishers/creating-contracts).
+  </Step>
+
+  <Step title="Select clauses">
+    In step 3 of the wizard, you'll browse the clause library organized by category:
+
+    - **Grant of Rights** — What rights are being licensed (sync, master use, etc.)
+    - **Financial Terms** — Fee structure, payment schedules, advances, royalties
+    - **Usage Restrictions** — Where and how the music can be used
+    - **Termination** — Conditions for ending the agreement
+    - **Representations & Warranties** — Legal assurances from each party
+
+    Select the clauses that match your deal. ProtoForge flags any conflicts between your selected clauses automatically.
+  </Step>
+
+  <Step title="Review and send for signature">
+    After generating the contract, review the final document on the preview screen. Verify that:
+
+    - All parties are listed correctly
+    - The clause selections match the deal terms you agreed on
+    - All token fields (dates, amounts, territories) are filled in accurately
+
+    When everything looks right, click **Send for Signature**. Each party receives an email with a unique link to review and sign the contract electronically.
+  </Step>
+</Steps>
+
+## What happens next
+
+Once you send the contract:
+
+- Each signer receives an email with a secure signing link
+- You can track signature progress on the **Contracts** page — see who has signed and who is pending
+- When all parties have signed, the contract is marked as **Fully Executed** and everyone receives a PDF copy
+- Every action is logged in the [Audit Trail](/publishers/audit-trail) for compliance
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Registering a Work" icon="music" href="/publishers/registering-works">
+    Deep dive into the Work Registration Wizard — all fields, identifiers, and metadata explained.
+  </Card>
+  <Card title="Managing Rights & Splits" icon="chart-pie" href="/publishers/rights-splits">
+    Learn how to configure rights holder percentages and the 100% sum rule.
+  </Card>
+  <Card title="Creating a Contract" icon="file-contract" href="/publishers/creating-contracts">
+    Full guide to the 6-step contract wizard, clause categories, and token fields.
+  </Card>
+  <Card title="Sending for Signature" icon="pen-nib" href="/publishers/sending-signatures">
+    Detailed walkthrough of the signature flow, status tracking, and completion.
+  </Card>
+</CardGroup>

@@ -16,6 +16,65 @@
   "navigation": {
     "tabs": [
       {
+        "tab": "For Composers",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "composers/welcome",
+              "composers/your-rights"
+            ]
+          },
+          {
+            "group": "Signing Contracts",
+            "pages": [
+              "composers/reviewing",
+              "composers/signing",
+              "composers/after-signing"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "composers/glossary"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "For Publishers",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "publishers/welcome",
+              "publishers/quickstart"
+            ]
+          },
+          {
+            "group": "Managing Works",
+            "pages": [
+              "publishers/registering-works",
+              "publishers/rights-splits"
+            ]
+          },
+          {
+            "group": "Contracts & Licensing",
+            "pages": [
+              "publishers/creating-contracts",
+              "publishers/sending-signatures",
+              "publishers/bulk-operations"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": [
+              "publishers/audit-trail"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Guides",
         "groups": [
           {
@@ -63,6 +122,17 @@
               "concepts/rights-metadata",
               "concepts/contract-templates",
               "concepts/multi-tenancy"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog"
             ]
           }
         ]

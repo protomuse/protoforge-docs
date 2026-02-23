@@ -1,0 +1,112 @@
+---
+title: "Registering a Work"
+description: "Walk through the Work Registration Wizard — basic info, contributors, territories, and metadata for each musical work"
+---
+
+Every contract in ProtoForge starts with a registered musical work. The Work Registration Wizard collects all the information needed to identify the work, list its contributors, and define where it can be licensed. This page walks through each step of the wizard.
+
+To begin, navigate to **Works** in the sidebar and click **New Work**.
+
+## The Work Registration Wizard
+
+A sticky progress indicator at the top of the wizard shows your current step. You can click any completed step to go back and edit. Your progress is saved automatically as you move between steps.
+
+### Step 1: Basic Info
+
+The first step captures the core metadata for the work.
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| **Title** | The primary title of the work | Yes |
+| **Alternative Titles** | Any alternate titles, translated titles, or working titles | No |
+| **ISRC** | International Standard Recording Code (e.g., GB-XXX-25-00001) | No |
+| **ISWC** | International Standard Musical Work Code (e.g., T-345246800-1) | No |
+| **GRid** | Global Release Identifier | No |
+| **EAN/UPC** | Barcode identifier (13 digits) | No |
+| **Catalog Number** | Your internal catalog reference | No |
+| **Duration** | Track length in seconds | Yes |
+| **Work Type** | Original, Modification, or Composite | Yes |
+| **Recording Type** | Original, Cover, Remix, or Sample | Yes |
+| **Genre** | Musical genre | Yes |
+| **Has Vocals** | Whether the recording contains vocals | Yes |
+| **Language** | Language of any vocals | No |
+
+<Callout type="tip">
+  ProtoForge validates ISRC and ISWC formats as you type. If the format is incorrect, you'll see an inline error with the expected pattern.
+</Callout>
+
+### Step 2: Contributors
+
+Add every person who contributed to the work. For each contributor, you'll provide:
+
+- **Name** — Full legal name
+- **Role** — Composer, Lyricist, Arranger, Performer, Producer, or other applicable role
+- **IPI Number** — The contributor's Interested Parties Information number, assigned by their collection society
+- **Share percentage** — Their ownership share of the work (all shares must total 100%)
+
+You can add multiple contributors. The wizard validates that shares sum to exactly 100% before allowing you to proceed.
+
+### Step 3: Territories
+
+Select the geographic regions where the work is available for licensing. Territories use ISO 3166-1 country codes. You can:
+
+- Select individual countries
+- Select entire regions (e.g., Europe, North America, Asia-Pacific)
+- Select **Worldwide** to cover all territories
+
+Territory selections carry forward into contracts created for this work.
+
+### Additional metadata
+
+Depending on your workflow, you may also configure:
+
+- **AVS Metadata** — DDEX Audio Visual Standard metadata fields for industry reporting
+- **Sync Metadata** — Sync-specific fields such as mood, tempo descriptors, and instrumentation tags
+- **Cue Sheet** — Timing and usage information for music supervisors
+- **CWR Export** — Common Works Registration readiness check and export settings
+
+## Identifier reference
+
+<Accordion title="What is an ISRC?">
+  The **International Standard Recording Code (ISRC)** is a unique 12-character identifier assigned to a specific recording of a work. It follows the format `CC-XXX-YY-NNNNN` where:
+
+  - `CC` — Country code (2 letters)
+  - `XXX` — Registrant code (3 alphanumeric characters)
+  - `YY` — Year of reference (2 digits)
+  - `NNNNN` — Designation code (5 digits)
+
+  ISRCs are assigned by your national ISRC agency or your distributor. In the UK, the agency is PPL; in the US, it's USISRC (administered by RIAA). If you don't have one yet, you can register the work without it and add the ISRC later.
+</Accordion>
+
+<Accordion title="What is an ISWC?">
+  The **International Standard Musical Work Code (ISWC)** identifies the underlying musical composition (not a specific recording). The format is `T-NNNNNNNNN-C` where:
+
+  - `T` — Always the letter T
+  - `NNNNNNNNN` — 9-digit unique number
+  - `C` — Check digit
+
+  ISWCs are assigned by your collection society (e.g., PRS, ASCAP, BMI, GEMA). If you haven't registered the composition with a collection society yet, you can leave this blank and update it later.
+</Accordion>
+
+<Accordion title="What is an IPI number?">
+  The **Interested Parties Information (IPI)** number is a unique identifier assigned to each rights holder by their collection society. It's used to track royalty payments internationally. You can find your IPI number by contacting your collection society or checking your membership account.
+</Accordion>
+
+<Accordion title="What if I don't have an ISRC yet?">
+  You can register the work without an ISRC and add it later. However, the ISRC is required for CWR (Common Works Registration) export. ProtoForge shows a CWR readiness indicator on the work detail page so you can see which fields are still needed for industry reporting.
+</Accordion>
+
+<Accordion title="Can I edit a work after saving?">
+  Yes. Navigate to the work's detail page from the **Works** list and click **Edit**. All fields are editable, and any changes are recorded in the audit trail. Note that editing a work does not automatically update contracts that have already been generated from it.
+</Accordion>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Managing Rights & Splits" icon="chart-pie" href="/publishers/rights-splits">
+    Configure rights holder percentages and understand the 100% sum rule.
+  </Card>
+  <Card title="Creating a Contract" icon="file-contract" href="/publishers/creating-contracts">
+    Use your registered work to create a sync licensing contract.
+  </Card>
+</CardGroup>

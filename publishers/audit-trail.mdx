@@ -1,0 +1,133 @@
+---
+title: "Audit Trail & Compliance"
+description: "View tamper-proof audit logs, verify hash-chain integrity, and maintain legal compliance for all contract actions"
+---
+
+Every action in ProtoForge — from creating a work to signing a contract — is recorded in a tamper-proof audit trail. This trail provides a complete, verifiable history of every event, satisfying legal requirements for contract audit and regulatory compliance.
+
+## What gets logged
+
+The audit trail captures every meaningful event across the platform:
+
+| Entity | Logged actions |
+|--------|---------------|
+| **Contracts** | Created, clauses selected, clauses changed, tokens filled, generated, sent for signature, signed by each party, fully executed, edited, new version created |
+| **Works** | Registered, metadata updated, contributors added or removed, splits changed, territories modified |
+| **Parties** | Created, details updated, associated with a contract, removed from a contract |
+| **Signatures** | Signing link sent, link opened, signature submitted, contract completed |
+| **PDF generation** | PDF generated, PDF downloaded, PDF shared |
+| **System events** | Bulk imports processed, webhook events received, API access |
+
+Each log entry includes:
+
+- **Timestamp** — Exact date and time (UTC) of the action
+- **Actor** — Who performed the action (user name and ID)
+- **Action type** — What was done (created, updated, signed, etc.)
+- **Entity** — The specific contract, work, or party affected
+- **Details** — A summary of what changed (e.g., "Clause GRANT_SYNC_001_V1 added")
+- **Hash** — Cryptographic hash linking this entry to the previous one
+
+## Hash-chain integrity
+
+<Callout type="info">
+  ProtoForge's audit trail uses hash-chain verification — each entry is cryptographically linked to the previous entry, making tampering detectable. If any entry were altered or deleted, the chain would break and the inconsistency would be immediately visible.
+</Callout>
+
+The hash-chain works as follows:
+
+1. Each audit log entry is assigned a cryptographic hash based on its contents (timestamp, actor, action, details)
+2. That hash also incorporates the hash of the previous entry, creating a chain
+3. To verify the trail, ProtoForge recalculates the chain from the first entry forward — if any link doesn't match, the trail has been tampered with
+4. The chain is verified automatically; you can also trigger a manual verification from the Audit Trail page
+
+This approach mirrors the integrity model described in ProtoForge's Constitution (Article VIII), ensuring that the audit record is trustworthy for legal and regulatory purposes.
+
+## Viewing the audit trail
+
+Navigate to **Audit Trail** in the sidebar to access the full log. The audit trail page provides several ways to find what you need:
+
+### Filters
+
+| Filter | Options |
+|--------|---------|
+| **Entity type** | Contract, Work, Party, or All |
+| **Date range** | Start date and end date |
+| **Action type** | Created, Updated, Signed, Generated, Sent, and others |
+| **Actor** | Filter by a specific team member |
+
+### Entity-level audit
+
+From any contract, work, or party detail page, click the **History** tab to see the complete audit trail for that specific entity. This is the fastest way to answer "what happened to this contract?" without searching the global log.
+
+<Tabs>
+  <Tab title="Contract history">
+    A contract's history shows every event from creation through execution:
+
+    - Contract created (with initial clause selections)
+    - Each clause added or removed
+    - Each token value filled or changed
+    - Contract generated (PDF created)
+    - Sent for signature (with signer list)
+    - Each party's signature event
+    - Fully executed (all signatures received)
+  </Tab>
+  <Tab title="Work history">
+    A work's history tracks all metadata and rights changes:
+
+    - Work registered (with initial metadata)
+    - Title or identifier changes
+    - Contributors added, removed, or modified
+    - Split percentages changed
+    - Territory selections updated
+    - Contracts created from this work (with links)
+  </Tab>
+  <Tab title="Party history">
+    A party's history shows their record changes and contract involvement:
+
+    - Party created (with initial details)
+    - Contact information updated
+    - IPI number or collection society changed
+    - Associated with a contract
+    - Signed a contract (with timestamp and contract link)
+  </Tab>
+</Tabs>
+
+## Compliance
+
+The audit trail is designed to meet legal and regulatory requirements for contract management:
+
+- **Legal audit** — Every contract can be traced from creation through execution with a complete, tamper-proof record. This satisfies legal requirements for demonstrating that contracts were properly executed.
+- **Internal compliance** — Organization admins can review who did what and when, supporting internal governance policies.
+- **Dispute resolution** — If a question arises about a contract's terms or signing history, the audit trail provides a definitive record.
+- **Data protection** — Audit log entries record actions but do not duplicate contract content. Access to the audit trail follows the same role-based permissions as the rest of the platform.
+
+## Exporting audit logs
+
+To export audit logs for external review or compliance reporting:
+
+<Steps>
+  <Step title="Apply filters">
+    Use the date range, entity type, and action type filters to narrow the log to the relevant entries.
+  </Step>
+  <Step title="Click Export">
+    Click the **Export** button in the top-right corner of the Audit Trail page. Choose your format: CSV or JSON.
+  </Step>
+  <Step title="Download the file">
+    The export file includes all filtered entries with their timestamps, actors, actions, details, and hash values. This file can be provided to auditors, legal counsel, or regulatory bodies as needed.
+  </Step>
+</Steps>
+
+<Callout type="tip">
+  For automated audit log retrieval, the API provides endpoints to query and export audit entries programmatically. See the [API Reference](/api-reference/introduction) for details.
+</Callout>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Publisher Dashboard Overview" icon="layout-dashboard" href="/publishers/welcome">
+    Return to the dashboard overview for a summary of all sections.
+  </Card>
+  <Card title="Creating a Contract" icon="file-contract" href="/publishers/creating-contracts">
+    Walk through the 6-step contract wizard.
+  </Card>
+</CardGroup>

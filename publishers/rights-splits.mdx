@@ -1,0 +1,133 @@
+---
+title: "Managing Rights & Splits"
+description: "Configure rights holder percentages, verify the 100% sum rule, and manage territory-specific rights for your works"
+---
+
+Every musical work in ProtoForge has one or more rights holders, and each holder is assigned a percentage share. These splits determine how revenue is distributed and are embedded directly into the contracts you generate. This page explains how to configure and validate splits.
+
+## The 100% rule
+
+<Callout type="warning">
+  Contracts cannot be generated until all rights splits for the associated work sum to exactly 100%. ProtoForge enforces this rule automatically — the contract wizard will not proceed past the validation step if splits are incomplete.
+</Callout>
+
+All percentage shares assigned to rights holders on a work must total exactly 100%. This applies to both writer shares and publisher shares independently when they are tracked separately, and to combined ownership shares when a single pool is used.
+
+ProtoForge validates this in real time as you add or edit contributors. A progress bar on the Contributors step of the Work Registration Wizard shows the current total and highlights the remaining balance.
+
+## Writer shares vs. publisher shares
+
+In music rights, ownership is typically divided into two pools:
+
+| Share type | Who holds it | What it represents |
+|------------|-------------|-------------------|
+| **Writer share** | Composers, lyricists, arrangers | The creative contribution to the underlying composition |
+| **Publisher share** | Publishers, co-publishers | The commercial exploitation rights acquired from writers |
+
+Each pool sums to 100% independently. For example:
+
+<Tabs>
+  <Tab title="Simple split">
+    A single writer and a single publisher:
+
+    | Rights holder | Role | Share |
+    |--------------|------|-------|
+    | Alice Chen | Writer | 100% (writer share) |
+    | Northstar Music Publishing | Publisher | 100% (publisher share) |
+
+    Both pools total 100%. Valid.
+  </Tab>
+  <Tab title="Multi-writer split">
+    Two co-writers and one publisher:
+
+    | Rights holder | Role | Share |
+    |--------------|------|-------|
+    | Alice Chen | Writer | 50% (writer share) |
+    | Bob Okafor | Writer | 50% (writer share) |
+    | Northstar Music Publishing | Publisher | 100% (publisher share) |
+
+    Writer pool: 50% + 50% = 100%. Publisher pool: 100%. Valid.
+  </Tab>
+  <Tab title="Co-publishing split">
+    One writer and two co-publishers:
+
+    | Rights holder | Role | Share |
+    |--------------|------|-------|
+    | Alice Chen | Writer | 100% (writer share) |
+    | Northstar Music Publishing | Publisher | 60% (publisher share) |
+    | Eastside Music Group | Co-Publisher | 40% (publisher share) |
+
+    Writer pool: 100%. Publisher pool: 60% + 40% = 100%. Valid.
+  </Tab>
+</Tabs>
+
+## Adding rights holders
+
+To assign splits, go to the **Contributors** step of the Work Registration Wizard (or edit an existing work):
+
+<Steps>
+  <Step title="Add a contributor">
+    Click **Add Contributor** and enter the person's or organization's name, role, and IPI number. Select whether this is a writer share or publisher share.
+  </Step>
+  <Step title="Set the percentage">
+    Enter the percentage share for this contributor. The running total updates in real time.
+  </Step>
+  <Step title="Repeat for all holders">
+    Add all writers and publishers involved in the work. The wizard shows the remaining balance for each pool.
+  </Step>
+  <Step title="Validate">
+    When both pools reach exactly 100%, the validation indicator turns green and you can proceed to the next step. If the total is over or under 100%, the wizard displays the discrepancy and blocks progression.
+  </Step>
+</Steps>
+
+## Territory-specific rights
+
+In some deals, rights splits differ by territory. For example, a writer in the UK might retain a larger share of domestic royalties while a sub-publisher in Japan holds a portion of the Asian territory rights.
+
+ProtoForge supports territory-specific split overrides:
+
+- **Default splits** apply worldwide unless overridden
+- **Territory overrides** let you set different percentages for specific countries or regions (using ISO 3166-1 codes)
+- Each territory override must also sum to 100%
+
+To add a territory override, navigate to the work's detail page, open the **Ownership & Splits** section, and click **Add Territory Override**. Select the territory, then assign shares for that region.
+
+<Callout type="info">
+  Territory-specific splits are reflected in the contracts generated for those regions. If you create a contract scoped to Japan, it uses the Japan-specific splits. If no override exists for the contract's territory, the default splits apply.
+</Callout>
+
+## Validation and error handling
+
+ProtoForge runs split validation at several points:
+
+| When | What is checked |
+|------|----------------|
+| **Work Registration Wizard** | Real-time total as you add contributors |
+| **Work detail page** | Split summary with visual indicator (green = valid, red = incomplete) |
+| **Contract wizard, Step 1** | Blocks work selection if splits are invalid |
+| **Contract generation** | Final validation before assembly — rejects if any pool is not exactly 100% |
+
+Common validation errors:
+
+<Accordion title="Shares total more than 100%">
+  Reduce one or more contributor percentages. The wizard shows which pool is over and by how much.
+</Accordion>
+
+<Accordion title="Shares total less than 100%">
+  Add a missing contributor or increase an existing share. The remaining balance is displayed next to the total.
+</Accordion>
+
+<Accordion title="Missing contributor role">
+  Every contributor must have a role assigned (Writer, Publisher, etc.). The wizard will not proceed until all roles are set.
+</Accordion>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Creating a Contract" icon="file-contract" href="/publishers/creating-contracts">
+    Use your validated work and splits to generate a sync licensing contract.
+  </Card>
+  <Card title="Registering a Work" icon="music" href="/publishers/registering-works">
+    Go back to the full Work Registration Wizard walkthrough.
+  </Card>
+</CardGroup>
